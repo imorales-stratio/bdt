@@ -39,3 +39,11 @@ Feature: Feature used in testing runOnEnv tag aspect
 #  @skipOnEnv(NO_WAIT)
 #  Scenario: This is an omitted scenario so it contains a failing assert
 #    Given I run 'sleep ${WAIT}' locally
+
+  @runOnEnv(WAIT~1)
+  Scenario: RunOnEnv with param defined and it has a value.
+    Given I run 'sleep ${WAIT}' locally
+
+  @runOnEnv(WAIT=2)
+  Scenario: RunOnEnv with param defined and it has a value.
+    Given I run 'sleep ${WAIT}' locally

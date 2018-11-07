@@ -166,6 +166,17 @@ public class RunOnTagAspect {
                     if (!System.getProperty(param).equals(value)) {
                         return false;
                     }
+                } else if (params[0][i].contains("~")) {
+                    String param = params[0][i].split("~")[0];
+                    String value = params[0][i].split("~")[1];
+
+                    if (System.getProperty(param, "").isEmpty()) {
+                        return false;
+                    }
+
+                    if (!System.getProperty(param).contains(value)) {
+                        return false;
+                    }
                 } else {
                     if (System.getProperty(params[0][i], "").isEmpty()) {
                         return false;
@@ -186,6 +197,16 @@ public class RunOnTagAspect {
                 if (!value.equals(System.getProperty(param))) {
                     result = false;
                 }
+            } else if (params[0][0].contains("~")) {
+                String param = params[0][0].split("~")[0];
+                String value = params[0][0].split("~")[1];
+                if (System.getProperty(param, "").isEmpty()) {
+                    result = false;
+                }
+
+                if (!value.contains(System.getProperty(param))) {
+                    result = false;
+                }
             } else {
                 if (System.getProperty(params[0][0], "").isEmpty()) {
                     result = false;
@@ -204,6 +225,28 @@ public class RunOnTagAspect {
                             result = result || false;
                         }
                     } else if (!System.getProperty(param).equals(value)) {
+                        if ("&&".equals(params[1][j - 1])) {
+                            result = result && false;
+                        } else {
+                            result = result || false;
+                        }
+                    } else {
+                        if ("&&".equals(params[1][j - 1])) {
+                            result = result && true;
+                        } else {
+                            result = result || true;
+                        }
+                    }
+                } else if (params[0][j].contains("~")) {
+                    String param = params[0][j].split("~")[0];
+                    String value = params[0][j].split("~")[1];
+                    if (System.getProperty(param, "").isEmpty()) {
+                        if ("&&".equals(params[1][j - 1])) {
+                            result = result && false;
+                        } else {
+                            result = result || false;
+                        }
+                    } else if (!System.getProperty(param).contains(value)) {
                         if ("&&".equals(params[1][j - 1])) {
                             result = result && false;
                         } else {
@@ -246,6 +289,28 @@ public class RunOnTagAspect {
                             result = result || false;
                         }
                     } else if (!value.equals(System.getProperty(param))) {
+                        if ("&&".equals(params[1][params[1].length - 1])) {
+                            result = result && false;
+                        } else {
+                            result = result || false;
+                        }
+                    } else {
+                        if ("&&".equals(params[1][params[1].length - 1])) {
+                            result = result && true;
+                        } else {
+                            result = result || true;
+                        }
+                    }
+                } else if (params[0][params[0].length - 1].contains("~")) {
+                    String param = params[0][params[0].length - 1].split("~")[0];
+                    String value = params[0][params[0].length - 1].split("~")[1];
+                    if (System.getProperty(param, "").isEmpty()) {
+                        if ("&&".equals(params[1][params[1].length - 1])) {
+                            result = result && false;
+                        } else {
+                            result = result || false;
+                        }
+                    } else if (!value.contains(System.getProperty(param))) {
                         if ("&&".equals(params[1][params[1].length - 1])) {
                             result = result && false;
                         } else {
