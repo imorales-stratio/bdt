@@ -124,6 +124,28 @@ public class WhenGSpec extends BaseGSpec {
     }
 
     /**
+     * Double Click on an numbered {@code url} previously found element.
+     *
+     * @param index
+     * @throws InterruptedException
+     */
+    @When("^I double click on the element on index '(\\d+?)'$")
+    public void seleniumDoubleClick(Integer index) throws InterruptedException {
+        Actions action = new Actions(commonspec.getDriver());
+        try {
+            assertThat(this.commonspec, commonspec.getPreviousWebElements()).as("There are less found elements than required")
+                    .hasAtLeast(index);
+            action.doubleClick(commonspec.getPreviousWebElements().getPreviousWebElements().get(index)).perform();
+
+        } catch (AssertionError e) {
+            Thread.sleep(1000);
+            assertThat(this.commonspec, commonspec.getPreviousWebElements()).as("There are less found elements than required")
+                    .hasAtLeast(index);
+            action.doubleClick(commonspec.getPreviousWebElements().getPreviousWebElements().get(index)).perform();
+        }
+    }
+
+    /**
      * Clear the text on a numbered {@code index} previously found element.
      *
      * @param index
