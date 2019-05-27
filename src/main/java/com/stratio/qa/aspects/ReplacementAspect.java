@@ -26,6 +26,7 @@ import com.stratio.qa.utils.ThreadProperty;
 import cucumber.api.PickleStepTestStep;
 import cucumber.api.Result.Type;
 import cucumber.api.Scenario;
+import cucumber.runner.AmbiguousStepDefinitionsException;
 import cucumber.runner.EventBus;
 import cucumber.runtime.*;
 import gherkin.events.PickleEvent;
@@ -118,12 +119,12 @@ public class ReplacementAspect {
     }
 
     @Pointcut("execution (* cucumber.runner.TestStep.executeStep(..)) && "
-            + "args (language, scenario, skipSteps)")
-    protected void replacementStar(String language, Scenario scenario, boolean skipSteps) {
+            + "args (scenario, skipSteps)")
+    protected void replacementStar(Scenario scenario, boolean skipSteps) {
     }
 
-    @Around(value = "replacementStar(language, scenario, skipSteps)")
-    public Type aroundReplacementStar(ProceedingJoinPoint pjp, String language, Scenario scenario, boolean skipSteps) throws Throwable {
+    @Around(value = "replacementStar(scenario, skipSteps)")
+    public Type aroundReplacementStar(ProceedingJoinPoint pjp, Scenario scenario, boolean skipSteps) throws Throwable {
         if (pjp.getTarget() instanceof PickleStepTestStep) {
             PickleStepTestStep pickleTestStep = (PickleStepTestStep) pjp.getTarget();
             PickleStep step = pickleTestStep.getPickleStep();
@@ -190,10 +191,10 @@ public class ReplacementAspect {
                 StepDefinitionMatch definitionMatch = glue.stepDefinitionMatch(uri, step);
                 if (definitionMatch != null) {
                     if (!skipSteps) {
-                        definitionMatch.runStep(language, scenario);
+                        definitionMatch.runStep(scenario);
                         return Type.PASSED;
                     } else {
-                        definitionMatch.dryRunStep(language, scenario);
+                        definitionMatch.dryRunStep(scenario);
                         return Type.SKIPPED;
                     }
                 } else {

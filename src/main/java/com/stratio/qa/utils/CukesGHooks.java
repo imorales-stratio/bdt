@@ -20,6 +20,7 @@ import com.stratio.qa.cucumber.testng.TestSourcesModel;
 import com.stratio.qa.cucumber.testng.TestSourcesModelUtil;
 import com.stratio.qa.specs.BaseGSpec;
 import com.stratio.qa.specs.HookGSpec;
+import cucumber.api.PickleStepTestStep;
 import cucumber.api.TestCase;
 import cucumber.api.event.*;
 import cucumber.api.event.EventListener;
@@ -94,18 +95,21 @@ public class CukesGHooks extends BaseGSpec implements EventListener, StrictAware
 
     private void handleTestStepStarted(TestStepStarted event) {
         if (HookGSpec.loggerEnabled) {
-            if (!event.testStep.isHook()) {
-                TestSourcesModel.AstNode astNode = TestSourcesModelUtil.INSTANCE.getTestSourcesModel().getAstNode(currentFeatureFile, event.testStep.getStepLine());
-                if (TestSourcesModel.isBackgroundStep(astNode)) {
-                    if (!isLastStepBackground) {
-                        logger.info(" Background:");
+            if (event.testStep instanceof PickleStepTestStep) {
+                PickleStepTestStep testStep = (PickleStepTestStep) event.testStep;
+                TestSourcesModel.AstNode astNode = TestSourcesModelUtil.INSTANCE.getTestSourcesModel().getAstNode(currentFeatureFile, testStep.getStepLine());
+                if (astNode != null) {
+                    if (TestSourcesModel.isBackgroundStep(astNode)) {
+                        if (!isLastStepBackground) {
+                            logger.info(" Background:");
+                        }
+                        isLastStepBackground = true;
+                    } else {
+                        if (isLastStepBackground) {
+                            logger.info(" Steps:");
+                        }
+                        isLastStepBackground = false;
                     }
-                    isLastStepBackground = true;
-                } else {
-                    if (isLastStepBackground) {
-                        logger.info(" Steps:");
-                    }
-                    isLastStepBackground = false;
                 }
             }
         }
