@@ -26,6 +26,6 @@ public class KafkaStepsIT extends BaseTest {
 
     @Test
     public void kafkaStepsTest() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }

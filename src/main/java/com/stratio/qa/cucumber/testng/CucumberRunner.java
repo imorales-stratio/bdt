@@ -16,14 +16,31 @@
 
 package com.stratio.qa.cucumber.testng;
 
-import cucumber.api.event.EventListener;
+import cucumber.api.event.TestRunFinished;
+import cucumber.api.event.TestRunStarted;
 import cucumber.api.formatter.StrictAware;
+import cucumber.runner.Runner;
+import cucumber.runner.TimeServiceEventBus;
+import cucumber.runner.EventBus;
+import cucumber.runner.TimeService;
+import cucumber.runtime.BackendModuleBackendSupplier;
 import cucumber.runtime.ClassFinder;
+import cucumber.runtime.CucumberException;
+import cucumber.runtime.FeatureCompiler;
+import cucumber.runtime.FeaturePathFeatureSupplier;
+import cucumber.runtime.filter.Filters;
+import cucumber.runtime.formatter.Plugins;
+import cucumber.runtime.filter.RerunFilters;
+import cucumber.runtime.formatter.PluginFactory;
+import cucumber.runtime.model.FeatureLoader;
+import cucumber.runner.ThreadLocalRunnerSupplier;
 import cucumber.runtime.RuntimeOptions;
 import cucumber.runtime.RuntimeOptionsFactory;
 import cucumber.runtime.io.MultiLoader;
 import cucumber.runtime.io.ResourceLoader;
 import cucumber.runtime.io.ResourceLoaderClassFinder;
+import cucumber.runtime.model.CucumberFeature;
+import gherkin.events.PickleEvent;
 import org.reflections.Reflections;
 
 import java.io.File;
@@ -36,51 +53,70 @@ import java.util.Set;
 
 public class CucumberRunner {
 
-    private final cucumber.runtime.Runtime runtime;
+    private final EventBus bus;
 
-    private ClassLoader classLoader;
+    private final Filters filters;
 
-    private RuntimeOptions runtimeOptions;
+    private final FeaturePathFeatureSupplier featureSupplier;
+
+    private final ThreadLocalRunnerSupplier runnerSupplier;
+
+    private final RuntimeOptions runtimeOptions;
 
     /**
-     * Default constructor for cucumber Runner.
+     * Bootstrap the cucumber runtime
      *
-     * @param clazz class
-     * @param feature feature to execute
-     * @throws IOException exception
-     * @throws ClassNotFoundException exception
-     * @throws InstantiationException exception
-     * @throws IllegalAccessException exception
-     * @throws NoSuchMethodException exception
-     * @throws InvocationTargetException exception
+     * @param clazz Which has the cucumber.api.CucumberOptions and org.testng.annotations.Test annotations
      */
-    @SuppressWarnings("unused")
-    public CucumberRunner(Class<?> clazz, String... feature) throws IOException, ClassNotFoundException,
-            InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-        classLoader = clazz.getClassLoader();
+    public CucumberRunner(Class clazz) throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        ClassLoader classLoader = clazz.getClassLoader();
         ResourceLoader resourceLoader = new MultiLoader(classLoader);
 
         RuntimeOptionsFactory runtimeOptionsFactory = new RuntimeOptionsFactory(clazz);
         runtimeOptions = runtimeOptionsFactory.create();
+
         String testSuffix = System.getProperty("TESTSUFFIX");
         String targetExecutionsPath = "target/executions/";
         if (testSuffix != null) {
             targetExecutionsPath = targetExecutionsPath + testSuffix + "/";
         }
-        boolean aux = new File(targetExecutionsPath).mkdirs();
-        CucumberReporter reporterTestNG;
+        new File(targetExecutionsPath).mkdirs();
+        CucumberReporter reporterTestNG = new CucumberReporter(targetExecutionsPath, clazz.getCanonicalName());
 
-        if ((feature.length == 0)) {
-            reporterTestNG = new CucumberReporter(targetExecutionsPath, clazz.getCanonicalName(), "");
-        } else {
-            List<String> features = new ArrayList<String>();
-            String fPath = "src/test/resources/features/" + feature[0] + ".feature";
-            features.add(fPath);
-            runtimeOptions.getFeaturePaths().addAll(features);
-            reporterTestNG = new CucumberReporter(targetExecutionsPath, clazz.getCanonicalName(), feature[0]);
+        addGlue();
+
+        ClassFinder classFinder = new ResourceLoaderClassFinder(resourceLoader, classLoader);
+        BackendModuleBackendSupplier backendSupplier = new BackendModuleBackendSupplier(resourceLoader, classFinder, runtimeOptions);
+        bus = new TimeServiceEventBus(TimeService.SYSTEM);
+
+        Plugins plugins = new Plugins(classLoader, new PluginFactory(), bus, runtimeOptions);
+        plugins.addPlugin(reporterTestNG);
+
+        // Add CukesGHooks
+        Set<Class<? extends StrictAware>> implementers = new Reflections("com.stratio.qa.utils").getSubTypesOf(StrictAware.class);
+        //List<Object> additionalPlugins = new ArrayList<>();
+        for (Class<? extends StrictAware> implementerClazz : implementers) {
+            Constructor<?> ctor = implementerClazz.getConstructor();
+            ctor.setAccessible(true);
+            Object newPlugin = ctor.newInstance();
+            //additionalPlugins.add(newPlugin);
+            plugins.addPlugin((StrictAware) newPlugin);
         }
 
-        List<String> uniqueGlue = new ArrayList<String>();
+//        reporterTestNG.setEventPublisher(bus);
+//        for (Object plugin : additionalPlugins) {
+//            ((EventListener) plugin).setEventPublisher(bus);
+//        }
+
+        FeatureLoader featureLoader = new FeatureLoader(resourceLoader);
+        RerunFilters rerunFilters = new RerunFilters(runtimeOptions, featureLoader);
+        filters = new Filters(runtimeOptions, rerunFilters);
+        this.runnerSupplier = new ThreadLocalRunnerSupplier(runtimeOptions, bus, backendSupplier);
+        featureSupplier = new FeaturePathFeatureSupplier(featureLoader, runtimeOptions);
+    }
+
+    private void addGlue() {
+        List<String> uniqueGlue = new ArrayList<>();
         uniqueGlue.add("classpath:com/stratio/cct/testsAT/specs");
         uniqueGlue.add("classpath:com/stratio/qa/specs");
         uniqueGlue.add("classpath:com/stratio/sparta/testsAT/specs");
@@ -123,35 +159,55 @@ public class CucumberRunner {
 
         runtimeOptions.getGlue().clear();
         runtimeOptions.getGlue().addAll(uniqueGlue);
+    }
 
-        runtimeOptions.addPlugin(reporterTestNG);
-        Set<Class<? extends StrictAware>> implementers = new Reflections("com.stratio.qa.utils")
-                .getSubTypesOf(StrictAware.class);
-        List<Object> additionalPlugins = new ArrayList<Object>();
+    public void runScenario(PickleEvent pickle) throws Throwable {
+        //Possibly invoked in a multi-threaded context
+        Runner runner = runnerSupplier.get();
+        TestCaseResultListener testCaseResultListener = new TestCaseResultListener(runner.getBus(), runtimeOptions.isStrict());
+        runner.runPickle(pickle);
+        testCaseResultListener.finishExecutionUnit();
 
-        for (Class<? extends StrictAware> implementerClazz : implementers) {
-            Constructor<?> ctor = implementerClazz.getConstructor();
-            ctor.setAccessible(true);
-            Object newPlugin = ctor.newInstance();
-            additionalPlugins.add(newPlugin);
-            runtimeOptions.addPlugin((StrictAware) newPlugin);
-        }
-
-        ClassFinder classFinder = new ResourceLoaderClassFinder(resourceLoader, classLoader);
-        runtime = new cucumber.runtime.Runtime(resourceLoader, classFinder, classLoader, runtimeOptions);
-
-        reporterTestNG.setEventPublisher(runtime.getEventBus());
-        for (Object plugin : additionalPlugins) {
-            ((EventListener) plugin).setEventPublisher(runtime.getEventBus());
+        if (!testCaseResultListener.isPassed()) {
+            throw testCaseResultListener.getError();
         }
     }
 
+    public void finish() {
+        bus.send(new TestRunFinished(bus.getTime()));
+    }
+
     /**
-     * Run the testclases(Features).
-     *
-     * @throws IOException exception
+     * @return returns the cucumber scenarios as a two dimensional array of {@link PickleEventWrapper}
+     * scenarios combined with their {@link CucumberFeatureWrapper} feature.
      */
-    public void runCukes() throws IOException {
-        runtime.run();
+    public Object[][] provideScenarios() {
+        try {
+            List<Object[]> scenarios = new ArrayList<>();
+            FeatureCompiler compiler = new FeatureCompiler();
+            List<CucumberFeature> features = getFeatures();
+            for (CucumberFeature feature : features) {
+                List<PickleEvent> pickles = compiler.compileFeature(feature);
+
+                for (PickleEvent pickle : pickles) {
+                    if (filters.matchesFilters(pickle)) {
+                        scenarios.add(new Object[]{new PickleEventWrapperImpl(pickle), new CucumberFeatureWrapperImpl(feature)});
+                    }
+                }
+            }
+            return scenarios.toArray(new Object[][]{});
+        } catch (CucumberException e) {
+            return new Object[][]{new Object[]{new CucumberExceptionWrapper(e), null}};
+        }
+    }
+
+    List<CucumberFeature> getFeatures() {
+
+        List<CucumberFeature> features = featureSupplier.get();
+        bus.send(new TestRunStarted(bus.getTime()));
+        for (CucumberFeature feature : features) {
+            feature.sendTestSourceRead(bus);
+        }
+        return features;
     }
 }

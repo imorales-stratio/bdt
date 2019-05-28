@@ -28,6 +28,6 @@ public class MiscIT extends BaseGTest {
 
     @Test(expectedExceptions = {})
     public void createFileTest() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }

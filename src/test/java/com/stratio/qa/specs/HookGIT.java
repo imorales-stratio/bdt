@@ -33,6 +33,6 @@ public class HookGIT extends BaseTest {
 
     @Test(enabled = true)
     public void seleniumTest() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }

@@ -27,6 +27,6 @@ public class RunOnEnvTagIT extends BaseGTest {
 
     @Test
     public void runOnEnvTagTest() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }

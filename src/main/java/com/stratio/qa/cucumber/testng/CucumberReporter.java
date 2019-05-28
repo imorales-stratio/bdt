@@ -126,16 +126,16 @@ public class CucumberReporter implements EventListener, StrictAware {
      * @param cClass class
      * @throws IOException exception
      */
-    public CucumberReporter(String url, String cClass, String additional) throws IOException {
+    public CucumberReporter(String url, String cClass) throws IOException {
         URLOutputStream urlOS = null;
         try {
-            urlOS = new URLOutputStream(Utils.toURL(url + cClass + additional + "TESTNG.xml"));
+            urlOS = new URLOutputStream(Utils.toURL(url + cClass + "TESTNG.xml"));
             this.writer = new UTF8OutputStreamWriter(urlOS);
         } catch (Exception e) {
             logger.error("error writing TESTNG.xml file", e);
         }
         try {
-            urlOS = new URLOutputStream(Utils.toURL(url + cClass + additional + "JUNIT.xml"));
+            urlOS = new URLOutputStream(Utils.toURL(url + cClass + "JUNIT.xml"));
             this.writerJunit = new UTF8OutputStreamWriter(urlOS);
         } catch (Exception e) {
             logger.error("error writing JUNIT.xml file", e);

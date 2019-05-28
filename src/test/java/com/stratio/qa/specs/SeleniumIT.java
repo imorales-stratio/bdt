@@ -36,6 +36,6 @@ public class SeleniumIT extends BaseTest {
 
     @Test
     public void seleniumTest() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }

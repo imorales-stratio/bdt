@@ -16,6 +16,7 @@
 
 package com.stratio.qa.aspects;
 
+import com.stratio.qa.cucumber.runner.Glue;
 import com.stratio.qa.cucumber.testng.CucumberReporter;
 import com.stratio.qa.cucumber.testng.TestSourcesModelUtil;
 import com.stratio.qa.exceptions.NonReplaceableException;
@@ -28,7 +29,9 @@ import cucumber.api.Result.Type;
 import cucumber.api.Scenario;
 import cucumber.runner.AmbiguousStepDefinitionsException;
 import cucumber.runner.EventBus;
-import cucumber.runtime.*;
+import cucumber.runtime.Backend;
+import cucumber.runtime.RuntimeOptions;
+import cucumber.runtime.StepDefinitionMatch;
 import gherkin.events.PickleEvent;
 import gherkin.pickles.*;
 import gherkin.pickles.Argument;
@@ -58,23 +61,25 @@ public class ReplacementAspect {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
-    private Glue glue;
+    private final Glue glue = new Glue();
 
     private List<String> undefinedSteps = new ArrayList<>();
 
     private String lastEchoedStep = "";
 
     @Pointcut("execution (cucumber.runner.Runner.new(..)) && "
-            + "args (glue, bus, backends, runtimeOptions)")
-    protected void runnerInit(Glue glue, EventBus bus, Collection<? extends Backend> backends, RuntimeOptions runtimeOptions) {
+            + "args (bus, backends, runtimeOptions)")
+    protected void runnerInit(EventBus bus, Collection<? extends Backend> backends, RuntimeOptions runtimeOptions) {
     }
 
-    @After(value = "runnerInit(glue, bus, backends, runtimeOptions)")
-    public void runnerInitGlue(JoinPoint jp, Glue glue, EventBus bus, Collection<? extends Backend> backends, RuntimeOptions runtimeOptions) throws Throwable {
-        this.glue = glue;
+    @After(value = "runnerInit(bus, backends, runtimeOptions)")
+    public void runnerInitGlue(JoinPoint jp, EventBus bus, Collection<? extends Backend> backends, RuntimeOptions runtimeOptions) throws Throwable {
+        for (Backend backend : backends) {
+            backend.loadGlue(glue, runtimeOptions.getGlue());
+        }
     }
 
-    @Pointcut("execution (* cucumber.runtime.DefaultSummaryPrinter.printSnippets(..))")
+    @Pointcut("execution (* cucumber.runtime.formatter.DefaultSummaryPrinter.printSnippets(..))")
     protected void print() {
     }
 

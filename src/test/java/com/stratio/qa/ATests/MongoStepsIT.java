@@ -28,6 +28,6 @@ public class MongoStepsIT extends BaseGTest {
 
     @Test
     public void mongoStepsTest() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }

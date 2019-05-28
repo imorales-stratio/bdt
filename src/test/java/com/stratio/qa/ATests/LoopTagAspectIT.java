@@ -36,6 +36,6 @@ public class LoopTagAspectIT extends BaseGTest {
 
     @Test
     public void loopTagTest() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }

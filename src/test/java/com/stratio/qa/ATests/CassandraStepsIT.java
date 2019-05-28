@@ -28,6 +28,6 @@ public class CassandraStepsIT extends BaseGTest {
 
     @Test
     public void cassandraStepsTest() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }

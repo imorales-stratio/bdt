@@ -27,6 +27,6 @@ public class ReplacementDataTableIT extends BaseGTest {
 
     @Test
     public void ReplacementDataTableIT() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }

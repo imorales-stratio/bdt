@@ -27,6 +27,6 @@ public class GetSecretsFromVaultIT extends BaseTest{
 
     @Test
     public void GetInfoVaultTest() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }

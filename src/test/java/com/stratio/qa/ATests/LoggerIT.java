@@ -30,6 +30,6 @@ public class LoggerIT extends BaseGTest {
 
     @Test(expectedExceptions = {})
     public void simpleTest() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }

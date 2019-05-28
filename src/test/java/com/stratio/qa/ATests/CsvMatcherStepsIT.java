@@ -28,6 +28,6 @@ public class CsvMatcherStepsIT extends BaseGTest {
 
     @Test
     public void csvMatcherStepsTest() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }

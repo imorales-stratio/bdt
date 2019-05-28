@@ -28,6 +28,6 @@ public class ElasticsearchStepsIT extends BaseGTest {
 
     @Test
     public void elasticsearchStepsTest() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }

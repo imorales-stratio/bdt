@@ -26,6 +26,6 @@ public class ZookeeperStepsIT extends BaseTest {
 
     @Test
     public void zookeeperStepsTest() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }

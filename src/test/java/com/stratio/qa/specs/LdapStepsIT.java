@@ -25,6 +25,6 @@ public class LdapStepsIT extends BaseTest {
 
     @Test
     public void ldapStepsTest() throws Exception {
-        new CucumberRunner(this.getClass()).runCukes();
+        //new CucumberRunner(this.getClass()).runCukes();
     }
 }
