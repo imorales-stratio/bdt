@@ -16,9 +16,9 @@
 
 package com.stratio.qa.cucumber.testng;
 
+import cucumber.api.event.ConcurrentEventListener;
 import cucumber.api.event.TestRunFinished;
 import cucumber.api.event.TestRunStarted;
-import cucumber.api.formatter.StrictAware;
 import cucumber.runner.Runner;
 import cucumber.runner.TimeServiceEventBus;
 import cucumber.runner.EventBus;
@@ -92,21 +92,13 @@ public class CucumberRunner {
         Plugins plugins = new Plugins(classLoader, new PluginFactory(), bus, runtimeOptions);
         plugins.addPlugin(reporterTestNG);
 
-        // Add CukesGHooks
-        Set<Class<? extends StrictAware>> implementers = new Reflections("com.stratio.qa.utils").getSubTypesOf(StrictAware.class);
-        //List<Object> additionalPlugins = new ArrayList<>();
-        for (Class<? extends StrictAware> implementerClazz : implementers) {
+        Set<Class<? extends ConcurrentEventListener>> implementers = new Reflections("com.stratio.qa.utils").getSubTypesOf(ConcurrentEventListener.class);
+        for (Class<? extends ConcurrentEventListener> implementerClazz : implementers) {
             Constructor<?> ctor = implementerClazz.getConstructor();
             ctor.setAccessible(true);
             Object newPlugin = ctor.newInstance();
-            //additionalPlugins.add(newPlugin);
-            plugins.addPlugin((StrictAware) newPlugin);
+            plugins.addPlugin((ConcurrentEventListener) newPlugin);
         }
-
-//        reporterTestNG.setEventPublisher(bus);
-//        for (Object plugin : additionalPlugins) {
-//            ((EventListener) plugin).setEventPublisher(bus);
-//        }
 
         FeatureLoader featureLoader = new FeatureLoader(resourceLoader);
         RerunFilters rerunFilters = new RerunFilters(runtimeOptions, featureLoader);

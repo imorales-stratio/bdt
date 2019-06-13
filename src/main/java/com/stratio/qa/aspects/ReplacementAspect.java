@@ -191,7 +191,7 @@ public class ReplacementAspect {
                     TestSourcesModelUtil.INSTANCE.getTestSourcesModel().addReplacedStep(scenario.getUri(), pickleTestStep.getStepLine(), step);
                     lastEchoedStep = pickleTestStep.getStepText();
                     if (HookGSpec.loggerEnabled) {
-                        logger.info("  {}{}", keyword, newName);
+                        logger.info("   {}{}", keyword, newName);
                         if (!sbDataTable.toString().isEmpty()) {
                             logger.info("  {}", sbDataTable.toString());
                         }

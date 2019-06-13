@@ -116,12 +116,6 @@ public abstract class BaseGTest {
      * @throws Throwable
      */
     public void runScenario(PickleEventWrapper pickleWrapper, CucumberFeatureWrapper featureWrapper) throws Throwable {
-        logger.info("Feature/Scenario: {}/{} ", featureWrapper.toString(), pickleWrapper.toString());
-        ThreadProperty.set("feature", featureWrapper.toString());
-        ThreadProperty.set("scenario", pickleWrapper.toString());
         cucumberRunner.runScenario(pickleWrapper.getPickleEvent());
-        if (HookGSpec.loggerEnabled) {
-            logger.info(""); //empty line to split scenarios
-        }
     }
 }

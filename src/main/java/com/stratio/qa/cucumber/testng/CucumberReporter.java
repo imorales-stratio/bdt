@@ -208,22 +208,6 @@ public class CucumberReporter implements EventListener, StrictAware {
         } else {
             testMethod.hooks.add(event.result);
         }
-        if (event.result.getStatus() == Result.Type.FAILED) {
-            StringBuilder stepFailedText = new StringBuilder();
-            stepFailedText.append("STEP FAILED!!!");
-            if (StepException.INSTANCE.getException() != null) {
-                stepFailedText.append(" - ").append(StepException.INSTANCE.getException().getClass().getCanonicalName());
-                if (StepException.INSTANCE.getException().getMessage() != null) {
-                    stepFailedText.append(": ").append(StepException.INSTANCE.getException().getMessage());
-                }
-                try {
-                    StackTraceElement[] elements = StepException.INSTANCE.getException().getStackTrace();
-                    stepFailedText.append(" | ").append(elements[0]);
-                } catch (Exception ignore) {
-                }
-            }
-            logger.error(stepFailedText.toString());
-        }
     }
 
     private void handleTestCaseFinished(TestCaseFinished event) {
