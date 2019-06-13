@@ -16,6 +16,7 @@
 
 package com.stratio.qa.specs;
 
+import com.stratio.qa.cucumber.converter.NullableString;
 import com.stratio.qa.cucumber.converter.Strokes;
 import com.stratio.qa.utils.PreviousWebElements;
 import com.stratio.qa.utils.ThreadProperty;
@@ -197,6 +198,7 @@ public class SeleniumSpec extends BaseGSpec {
 
     /**
      * Dragging element with offset
+     *
      * @param element
      * @param xOffset
      * @param yOffset
@@ -235,6 +237,9 @@ public class SeleniumSpec extends BaseGSpec {
             assertThat(this.commonspec, commonspec.getPreviousWebElements()).as("There are less found elements than required")
                     .hasAtLeast(index);
             commonspec.getPreviousWebElements().getPreviousWebElements().get(index).click();
+        } catch (WebDriverException e) {
+            JavascriptExecutor executor = commonspec.getDriver();
+            executor.executeScript("arguments[0].click();", commonspec.getPreviousWebElements().getPreviousWebElements().get(index));
         }
     }
 
@@ -306,11 +311,12 @@ public class SeleniumSpec extends BaseGSpec {
     /**
      * Type a {@code text} on an numbered {@code index} previously found element.
      *
-     * @param text
+     * @param nullablestring
      * @param index
      */
-    @When("I type '{nullablestring}' on the element on index '{int}'")
-    public void seleniumType(String text, Integer index) {
+    @When("I type {string} on the element on index '{int}'")
+    public void seleniumType(String nullablestring, Integer index) {
+        String text = NullableString.transform(nullablestring);
         assertThat(this.commonspec, commonspec.getPreviousWebElements()).as("There are less found elements than required")
                 .hasAtLeast(index);
         while (text.length() > 0) {
@@ -332,12 +338,29 @@ public class SeleniumSpec extends BaseGSpec {
     }
 
     /**
-     * Paste text on {@code text}
-     * @param jsSelector example: div #id_div a .a_class
-     * @param text
+     * Retrieve element value and save on {@code envVar}
+     * @param nullableSelector example: div #id_div a .a_class
+     * @param envVar
      */
-    @Given("I type on element '{nullablestring}' the following text '{nullablestring}'")
-    public void seleniumAppend(String jsSelector, String text) {
+    @Given("I retrieve value from element '(.+?)' and save the value in environment variable '(.+?)'$")
+    public void seleniumRetrieve(String nullableSelector, String envVar) {
+        String jsSelector = NullableString.transform(nullableSelector);
+        WebDriver driver = commonspec.getDriver();
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        String results = (String) js.executeScript("return document.querySelector('" + jsSelector + "').value");
+        ThreadProperty.set(envVar, results);
+    }
+
+    /**
+     * Paste text on {@code text}
+     *
+     * @param nullableSelector example: div #id_div a .a_class
+     * @param nullableTest
+     */
+    @Given("I type on element {string} the following text {string}")
+    public void seleniumAppend(String nullableSelector, String nullableTest) {
+        String jsSelector = NullableString.transform(nullableSelector);
+        String text = NullableString.transform(nullableTest);
         WebDriver driver = commonspec.getDriver();
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("document.querySelector('" + jsSelector + "').value = '" + text + "'");
@@ -345,6 +368,7 @@ public class SeleniumSpec extends BaseGSpec {
 
     /**
      * Wait for render a html element
+     *
      * @param method
      * @param element
      * @param sTimeout
@@ -651,7 +675,7 @@ public class SeleniumSpec extends BaseGSpec {
     @Then("^I save selenium dcos acs auth cookie in variable '(.+?)'$")
     public void getDcosAcsAuthCookie(String envVar) throws Exception {
         if (commonspec.getSeleniumCookies() != null && commonspec.getSeleniumCookies().size() != 0) {
-            for (Cookie cookie: commonspec.getSeleniumCookies()) {
+            for (Cookie cookie : commonspec.getSeleniumCookies()) {
                 if (cookie.getName().contains("dcos-acs-auth-cookie")) {
                     //It's this cookie where we have to extract the value
                     ThreadProperty.set(envVar, cookie.getValue());
@@ -669,7 +693,7 @@ public class SeleniumSpec extends BaseGSpec {
     @Then("^I save selenium cookie '(.+?)' in variable '(.+?)'$")
     public void getDcosAcsAuthCookie(String cookieName, String envVar) throws Exception {
         if (commonspec.getSeleniumCookies() != null && commonspec.getSeleniumCookies().size() != 0) {
-            for (Cookie cookie: commonspec.getSeleniumCookies()) {
+            for (Cookie cookie : commonspec.getSeleniumCookies()) {
                 if (cookie.getName().contains(cookieName)) {
                     //It's this cookie where we have to extract the value
                     ThreadProperty.set(envVar, cookie.getValue());
@@ -690,6 +714,7 @@ public class SeleniumSpec extends BaseGSpec {
     public void checkIfCookieExists(String cookieName) {
         Assertions.assertThat(commonspec.cookieExists(cookieName)).isEqualTo(true);
     }
+
     /**
      * Check if the length of the cookie set match with the number of cookies thas must be saved
      *
@@ -713,4 +738,23 @@ public class SeleniumSpec extends BaseGSpec {
         String text = commonspec.getPreviousWebElements().getPreviousWebElements().get(index).getText();
         ThreadProperty.set(envVar, text);
     }
+
+    /**
+     * Types text if the element exists, if not return a warning message but test continues
+     *
+     * @param text  text to introduce in the located field
+     * @param method name of the thread environment variable where to store the text
+     * @param element Element to find
+     */
+    @Then("^I type '(.+?)' if the element exists with '([^:]*?):(.+?)'$")
+    public void typeTextIfElemenExists(String text, String method, String element) throws ClassNotFoundException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+        try {
+            assertSeleniumNElementExists(1, method, element);
+        } catch (AssertionError e) {
+            commonspec.getLogger().warn("Element with {}:{} does not exist, let's continue...", method, element);
+            return;
+        }
+        seleniumType(text, 0);
+    }
+
 }

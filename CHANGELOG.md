@@ -2,9 +2,27 @@
 
 Only listing significant user-visible, not internal code cleanups and minor bug fixes.
 
-## 0.11.0 (upcoming)
+## 0.12.0 (upcoming)
 
-* Pending changelog
+* [QATM-2490] Save service response in environment variable without File parameters
+* [QATM-2494] Fix Permission denied error when we try to copy a file and destination file name is not defined 
+* [QATM-1896] Allow standalone-chrome usage without grid
+
+## 0.11.0 (June 11, 2019)
+
+* [QATM-2484] Fix copyTo and copyFrom methods for dirs/files handling
+* [QATM-1986] Upgrade Cucumber to 3.0.2
+* [QATM-2349] Add exception info when one step fails and hide next steps of scenario
+* [QATM-2344] new steps to gather info from bootstrap
+* [QATM-2303] refactor of steps due to new cucumber version
+* [QATM-2353] Fix infinite loop in some undefined steps
+* [QATM-2355] Do not flat template file when it's not a JSON
+* [QATM-2352] New catch added in Selenium click step
+* [QATM-2359] Fix error in sendRequestTimeout method
+* [QATM-2364] Add EOS_ACCESS_POINT in returned info from bootstrap
+* [QATM-2363] Add step typing textx if the element exists using selenium
+* [QATM-2365] Add retrieve value js
+* [QATM-2488] Add tag to avoid execution when environment variables not defined
 
 ## 0.10.0 (May 23, 2019)
 

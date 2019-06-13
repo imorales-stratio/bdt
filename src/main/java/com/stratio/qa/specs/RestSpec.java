@@ -26,11 +26,12 @@ import io.cucumber.datatable.DataTable;
 import org.json.JSONArray;
 
 import java.io.*;
-import java.util.*;
+import java.util.Optional;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
 import static com.stratio.qa.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Generic API Rest Specs.
@@ -222,6 +223,19 @@ public class RestSpec extends BaseGSpec {
     }
 
 
+    @When("^I create '(policy|user|group)' '(.+?)' using API service path '(.+?)'( with user and password '(.+:.+?)')? based on '([^:]+?)'( as '(json|string|gov)')? with:$")
+    public void createResource(String resource, String resourceId, String endPoint, String loginInfo, String baseData, String type, DataTable modifications) throws Exception {
+        createResourceIfNotExist(resource, resourceId, endPoint, loginInfo, false, baseData, type, modifications);
+
+    }
+
+
+    @When("^I create '(policy|user|group)' '(.+?)' using API service path '(.+?)'( with user and password '(.+:.+?)')? if it does not exist based on '([^:]+?)'( as '(json|string|gov)')? with:$")
+    public void createResourceIfNotExist(String resource, String resourceId, String endPoint, String loginInfo, String baseData, String type, DataTable modifications) throws Exception {
+        createResourceIfNotExist(resource, resourceId, endPoint, loginInfo, true, baseData, type, modifications);
+    }
+
+
     /**
      * Creates a custom resource in gosec management if the resource doesn't exist
      *
@@ -235,8 +249,7 @@ public class RestSpec extends BaseGSpec {
      * @param modifications
      * @throws Exception
      */
-    @When("^I create '(.+?)' '(.+?)' in endpoint '(.+?)'( with user and password '(.+:.+?)')?( if it does not exist)? based on '([^:]+?)'( as '(json|string|gov)')? with:$")
-    public void createResourceIfNotExist(String resource, String resourceId, String endPoint, String loginInfo, String doesNotExist, String baseData, String type, DataTable modifications) throws Exception {
+    private void createResourceIfNotExist(String resource, String resourceId, String endPoint, String loginInfo, boolean doesNotExist, String baseData, String type, DataTable modifications) throws Exception {
         Integer expectedStatusCreate = new Integer(201);
         Integer expectedStatusDelete = new Integer(200);
         String endPointResource = endPoint + "/" + resourceId;
@@ -260,8 +273,9 @@ public class RestSpec extends BaseGSpec {
                     throw e;
                 }
             } else {
+                commonspec.getLogger().warn("{}:{} already exist", resource, resourceId);
                 if (resource.equals("policy") && commonspec.getResponse().getStatusCode() == 200) {
-                    if (doesNotExist != null) {
+                    if (doesNotExist == true) {
                         //Policy already exists
                         commonspec.getLogger().warn("Policy {} already exist - not created", resourceId);
 
@@ -295,7 +309,7 @@ public class RestSpec extends BaseGSpec {
      * @param loginInfo
      * @throws Exception
      */
-    @When("^I delete '(.+?) '(.+?)' in endpoint '(.+?)'( with user and password '(.+:.+?)')? if it exists$")
+    @When("^I delete '(policy|user|group)' '(.+?)' using API service path '(.+?)'( with user and password '(.+:.+?)')? if it exists$")
     public void deleteUserIfExists(String resource, String resourceId, String endPoint, String loginInfo) throws Exception {
         Integer expectedStatusDelete = new Integer(200);
         String endPointResource = endPoint + "/" + resourceId;
@@ -370,7 +384,7 @@ public class RestSpec extends BaseGSpec {
      * @param responseVal
      * @throws Exception
      */
-    @When("^in less than '(\\d+)' seconds, checking each '(\\d+)' seconds, I send a '(.+?)' request to '(.+?)'( so that the response( does not))?( contains '(.+?)')?$")
+    @When("^in less than '(\\d+)' seconds, checking each '(\\d+)' seconds, I send a '(.+?)' request to '(.+?)' so that the response( does not)? contains '(.+?)'$")
     public void sendRequestTimeout(Integer timeout, Integer wait, String requestType, String endPoint, String contains, String responseVal) throws Exception {
         AssertionError ex = null;
         String type = "";
@@ -448,7 +462,7 @@ public class RestSpec extends BaseGSpec {
 
     @When("^I login to '(.+?)' based on '([^:]+?)' as '(json|string)' with:$")
     public void loginUser(String endPoint, String baseData, String type, DataTable modifications) throws Exception {
-        sendRequest("POST", endPoint,  null, baseData, type, modifications);
+        sendRequest("POST", endPoint, null, baseData, type, modifications);
     }
 
     @When("^I logout from '(.+?)'$")
@@ -494,28 +508,35 @@ public class RestSpec extends BaseGSpec {
         }
     }
 
-    @Then("^I save service response in environment variable '(.*?)'( and file '(.*?)')?$")
-    public void saveResponseInEnvironmentVariableFile(String envVar, String foo, String fileName) throws Exception {
-        String value = commonspec.getResponse().getResponse();
+    @Then("^I save service response( in environment variable '(.*?)')?( in file '(.*?)')?$")
+    public void saveResponseInEnvironmentVariableFile(String envVar, String fileName) throws Exception {
 
-        ThreadProperty.set(envVar, value);
+        if (envVar != null || fileName != null) {
+            String value = commonspec.getResponse().getResponse();
 
-        if (foo != null) {
-            // Create file (temporary) and set path to be accessible within test
-            File tempDirectory = new File(String.valueOf(System.getProperty("user.dir") + "/target/test-classes/"));
-            String absolutePathFile = tempDirectory.getAbsolutePath() + "/" + fileName;
-            commonspec.getLogger().debug("Creating file {} in 'target/test-classes'", absolutePathFile);
-            // Note that this Writer will delete the file if it exists
-            Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(absolutePathFile), "UTF-8"));
-            try {
-                out.write(value);
-            } catch (Exception e) {
-                commonspec.getLogger().error("Custom file {} hasn't been created:\n{}", absolutePathFile, e.toString());
-            } finally {
-                out.close();
+            if (envVar != null) {
+                ThreadProperty.set(envVar, value);
             }
 
-            Assertions.assertThat(new File(absolutePathFile).isFile());
+            if (fileName != null) {
+                // Create file (temporary) and set path to be accessible within test
+                File tempDirectory = new File(String.valueOf(System.getProperty("user.dir") + "/target/test-classes/"));
+                String absolutePathFile = tempDirectory.getAbsolutePath() + "/" + fileName;
+                commonspec.getLogger().debug("Creating file {} in 'target/test-classes'", absolutePathFile);
+                // Note that this Writer will delete the file if it exists
+                Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(absolutePathFile), "UTF-8"));
+                try {
+                    out.write(value);
+                } catch (Exception e) {
+                    commonspec.getLogger().error("Custom file {} hasn't been created:\n{}", absolutePathFile, e.toString());
+                } finally {
+                    out.close();
+                }
+
+                Assertions.assertThat(new File(absolutePathFile).isFile());
+            }
+        } else {
+            fail("No environment variable neither file defined");
         }
     }
 
