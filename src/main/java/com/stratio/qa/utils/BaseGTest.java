@@ -19,7 +19,6 @@ package com.stratio.qa.utils;
 import com.stratio.qa.cucumber.testng.CucumberFeatureWrapper;
 import com.stratio.qa.cucumber.testng.CucumberRunner;
 import com.stratio.qa.cucumber.testng.PickleEventWrapper;
-import com.stratio.qa.specs.HookGSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.ITestContext;

@@ -36,7 +36,7 @@ public class RunOnTagAspect {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
-    @Pointcut("execution (* cucumber.runtime.Runtime.matchesFilters(..)) && " +
+    @Pointcut("execution (* cucumber.runtime.filter.Filters.matchesFilters(..)) && " +
               "args(pickleEvent)")
     protected void AddRunOnTagPointcutScenario(PickleEvent pickleEvent) {
     }
