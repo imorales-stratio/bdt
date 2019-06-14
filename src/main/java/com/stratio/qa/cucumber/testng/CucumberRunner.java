@@ -45,6 +45,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -66,7 +68,7 @@ public class CucumberRunner {
      *
      * @param clazz Which has the cucumber.api.CucumberOptions and org.testng.annotations.Test annotations
      */
-    public CucumberRunner(Class clazz) throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public CucumberRunner(Class clazz) throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, URISyntaxException {
         ClassLoader classLoader = clazz.getClassLoader();
         ResourceLoader resourceLoader = new MultiLoader(classLoader);
 
@@ -104,47 +106,47 @@ public class CucumberRunner {
         featureSupplier = new FeaturePathFeatureSupplier(featureLoader, runtimeOptions);
     }
 
-    private void addGlue() {
-        List<String> uniqueGlue = new ArrayList<>();
-        uniqueGlue.add("classpath:com/stratio/cct/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/qa/specs");
-        uniqueGlue.add("classpath:com/stratio/sparta/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/gosecsso/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/dcos/crossdata/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/cct/configuration/api/specs");
-        uniqueGlue.add("classpath:com/stratio/crossdata/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/streaming/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/ingestion/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/datavis/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/connectors/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/admin/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/explorer/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/manager/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/viewer/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/decision/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/paas/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/cassandra/lucene/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/analytic/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/exhibitor/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/intelligence/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/postgresbd/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/postgresql/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/zookeeper/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/universe/testsAT/specs");
-        uniqueGlue.add("classpath:com/stratio/paas/dgDatadictionaryAT/specs");
-        uniqueGlue.add("classpath:com/stratio/paas/dgtests/specs");
-        uniqueGlue.add("classpath:com/stratio/elastic/specs");
-        uniqueGlue.add("classpath:com/stratio/kafka/specs");
-        uniqueGlue.add("classpath:com/stratio/hdfs/specs");
-        uniqueGlue.add("classpath:com/stratio/kibana/specs");
-        uniqueGlue.add("classpath:com/stratio/cassandra/specs");
-        uniqueGlue.add("classpath:com/stratio/schema_registry/specs");
-        uniqueGlue.add("classpath:com/stratio/rest_proxy/specs");
-        uniqueGlue.add("classpath:com/stratio/spark/tests/specs");
-        uniqueGlue.add("classpath:com/stratio/schema/discovery/specs");
-        uniqueGlue.add("classpath:com/stratio/pgbouncer/specs");
-        uniqueGlue.add("classpath:com/stratio/ignite/specs");
-        uniqueGlue.add("classpath:com/stratio/qa/cucumber/converter");
+    private void addGlue() throws URISyntaxException {
+        List<URI> uniqueGlue = new ArrayList<>();
+        uniqueGlue.add(new URI("classpath:com/stratio/cct/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/qa/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/sparta/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/gosecsso/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/dcos/crossdata/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/cct/configuration/api/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/crossdata/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/streaming/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/ingestion/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/datavis/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/connectors/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/admin/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/explorer/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/manager/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/viewer/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/decision/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/paas/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/cassandra/lucene/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/analytic/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/exhibitor/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/intelligence/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/postgresbd/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/postgresql/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/zookeeper/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/universe/testsAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/paas/dgDatadictionaryAT/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/paas/dgtests/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/elastic/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/kafka/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/hdfs/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/kibana/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/cassandra/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/schema_registry/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/rest_proxy/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/spark/tests/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/schema/discovery/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/pgbouncer/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/ignite/specs"));
+        uniqueGlue.add(new URI("classpath:com/stratio/qa/cucumber/converter"));
 
         runtimeOptions.getGlue().clear();
         runtimeOptions.getGlue().addAll(uniqueGlue);

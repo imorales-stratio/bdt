@@ -56,7 +56,7 @@ public class LoopIncludeTagAspect {
         List<String> lines = Files.readAllLines(Paths.get(resource.getPath()), StandardCharsets.UTF_8);
         String listParams;
         String paramReplace;
-        String path = resource.getPath();
+        String path = resource.getPath().getPath();
         int endIndex = path.lastIndexOf("/") + 1;
         path = path.substring(0, endIndex);
 

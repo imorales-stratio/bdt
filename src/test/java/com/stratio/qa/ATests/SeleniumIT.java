@@ -15,7 +15,8 @@
  */
 package com.stratio.qa.ATests;
 
-import com.stratio.qa.cucumber.testng.CucumberRunner;
+import com.stratio.qa.cucumber.testng.CucumberFeatureWrapper;
+import com.stratio.qa.cucumber.testng.PickleEventWrapper;
 import com.stratio.qa.data.BrowsersDataProvider;
 import com.stratio.qa.utils.BaseGTest;
 import cucumber.api.CucumberOptions;
@@ -30,8 +31,8 @@ public class SeleniumIT extends BaseGTest {
         this.browser = browser;
     }
 
-    @Test
-    public void simpleTest() throws Exception {
-        //new CucumberRunner(this.getClass()).runCukes();
+    @Test(dataProvider = "scenarios")
+    public void run(PickleEventWrapper pickleWrapper, CucumberFeatureWrapper featureWrapper) throws Throwable {
+        runScenario(pickleWrapper, featureWrapper);
     }
 }

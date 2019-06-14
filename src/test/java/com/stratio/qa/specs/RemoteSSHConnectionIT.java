@@ -15,7 +15,8 @@
  */
 package com.stratio.qa.specs;
 
-import com.stratio.qa.cucumber.testng.CucumberRunner;
+import com.stratio.qa.cucumber.testng.CucumberFeatureWrapper;
+import com.stratio.qa.cucumber.testng.PickleEventWrapper;
 import com.stratio.qa.utils.BaseGTest;
 import cucumber.api.CucumberOptions;
 import org.testng.annotations.Test;
@@ -24,8 +25,8 @@ import org.testng.annotations.Test;
         "src/test/resources/features/copyToFrom.feature"})
 public class RemoteSSHConnectionIT extends BaseGTest {
 
-    @Test(expectedExceptions = {})
-    public void remoteSSHConnectionTest() throws Exception {
-//        new CucumberRunner(this.getClass()).runCukes();
+    @Test(dataProvider = "scenarios")
+    public void run(PickleEventWrapper pickleWrapper, CucumberFeatureWrapper featureWrapper) throws Throwable {
+        runScenario(pickleWrapper, featureWrapper);
     }
 }

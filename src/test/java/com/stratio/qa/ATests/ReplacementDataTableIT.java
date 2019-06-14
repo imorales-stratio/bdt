@@ -15,7 +15,8 @@
  */
 package com.stratio.qa.ATests;
 
-import com.stratio.qa.cucumber.testng.CucumberRunner;
+import com.stratio.qa.cucumber.testng.CucumberFeatureWrapper;
+import com.stratio.qa.cucumber.testng.PickleEventWrapper;
 import com.stratio.qa.utils.BaseGTest;
 import cucumber.api.CucumberOptions;
 import org.testng.annotations.Test;
@@ -25,8 +26,8 @@ import org.testng.annotations.Test;
 })
 public class ReplacementDataTableIT extends BaseGTest {
 
-    @Test
-    public void ReplacementDataTableIT() throws Exception {
-        //new CucumberRunner(this.getClass()).runCukes();
+    @Test(dataProvider = "scenarios")
+    public void run(PickleEventWrapper pickleWrapper, CucumberFeatureWrapper featureWrapper) throws Throwable {
+        runScenario(pickleWrapper, featureWrapper);
     }
 }

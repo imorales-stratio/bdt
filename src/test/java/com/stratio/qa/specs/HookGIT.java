@@ -15,24 +15,25 @@
  */
 package com.stratio.qa.specs;
 
-import com.stratio.qa.cucumber.testng.CucumberRunner;
+import com.stratio.qa.cucumber.testng.CucumberFeatureWrapper;
+import com.stratio.qa.cucumber.testng.PickleEventWrapper;
 import com.stratio.qa.data.BrowsersDataProvider;
 
-import com.stratio.qa.utils.BaseTest;
+import com.stratio.qa.utils.BaseGTest;
 import cucumber.api.CucumberOptions;
 import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
 
 @CucumberOptions(plugin = "json:target/cucumber.json", features = {"src/test/resources/features/selenium.feature"})
-public class HookGIT extends BaseTest {
+public class HookGIT extends BaseGTest {
 
     @Factory(enabled = false, dataProviderClass = BrowsersDataProvider.class, dataProvider = "availableUniqueBrowsers")
     public HookGIT(String browser) {
         this.browser = browser;
     }
 
-    @Test(enabled = true)
-    public void seleniumTest() throws Exception {
-        //new CucumberRunner(this.getClass()).runCukes();
+    @Test(dataProvider = "scenarios")
+    public void run(PickleEventWrapper pickleWrapper, CucumberFeatureWrapper featureWrapper) throws Throwable {
+        runScenario(pickleWrapper, featureWrapper);
     }
 }
