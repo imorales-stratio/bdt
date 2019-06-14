@@ -41,8 +41,7 @@ public class LoopIncludeTagAspect {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
-
-    @Pointcut("execution (public * cucumber.runtime.model.FeatureBuilder.read(..)) &&" + "args (resource)")
+    @Pointcut("execution (private * cucumber.runtime.model.FeatureParser.read(..)) &&" + "args (resource)")
     protected void featureBuilderRead(Resource resource) {
     }
 
@@ -53,10 +52,10 @@ public class LoopIncludeTagAspect {
      */
     @Around(value = "featureBuilderRead(resource)")
     public String aroundAddLoopTagPointcutScenario(Resource resource) throws Throwable {
-        List<String> lines = Files.readAllLines(Paths.get(resource.getPath()), StandardCharsets.UTF_8);
+        List<String> lines = Files.readAllLines(Paths.get(resource.getPath().getRawSchemeSpecificPart()), StandardCharsets.UTF_8);
         String listParams;
         String paramReplace;
-        String path = resource.getPath().getPath();
+        String path = resource.getPath().getRawSchemeSpecificPart();
         int endIndex = path.lastIndexOf("/") + 1;
         path = path.substring(0, endIndex);
 
@@ -92,7 +91,7 @@ public class LoopIncludeTagAspect {
                     s++;
                 }
                 lines.add(s, "Examples:");
-                int deltaLines = exampleMultiloopLines(params, lines,  s + 1);
+                int deltaLines = exampleMultiloopLines(params, lines, s + 1);
                 s = s + deltaLines;
             }
             if (lines.get(s).toUpperCase().matches("\\s*@LOOP.*")) {
@@ -118,7 +117,7 @@ public class LoopIncludeTagAspect {
                     s++;
                 }
                 lines.add(s, "Examples:");
-                exampleLoopLines(paramReplace, elems, lines,  s + 1);
+                exampleLoopLines(paramReplace, elems, lines, s + 1);
                 s = s + elems.length;
             }
             if (lines.get(s).toUpperCase().matches("\\s*@BACKGROUND.*")) {
@@ -144,7 +143,7 @@ public class LoopIncludeTagAspect {
         return String.join("\n", lines);
     }
 
-    public void exampleLoopLines (String name, String[] params, List<String> lines, int num) {
+    public void exampleLoopLines(String name, String[] params, List<String> lines, int num) {
         lines.add(num, "| " + name + " | " + name + ".id |");
         for (int i = 0; i < params.length; i++) {
             num++;
@@ -152,7 +151,7 @@ public class LoopIncludeTagAspect {
         }
     }
 
-    public int exampleMultiloopLines (Map<String, String[]> params, List<String> lines, int num) {
+    public int exampleMultiloopLines(Map<String, String[]> params, List<String> lines, int num) {
         int numLines = 0;
         String[] keys = params.keySet().toArray(new String[params.keySet().size()]);
         StringBuilder sbHeader = new StringBuilder();
