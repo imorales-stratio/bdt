@@ -62,7 +62,7 @@ public class ReplacementAspect {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getCanonicalName());
 
-    private final Glue glue = new Glue();
+    private Glue glue;
 
     private List<String> undefinedSteps = new ArrayList<>();
 
@@ -75,6 +75,7 @@ public class ReplacementAspect {
 
     @After(value = "runnerInit(bus, backends, runtimeOptions)")
     public void runnerInitGlue(JoinPoint jp, EventBus bus, Collection<? extends Backend> backends, RuntimeOptions runtimeOptions) throws Throwable {
+        glue = new Glue();
         for (Backend backend : backends) {
             backend.loadGlue(glue, runtimeOptions.getGlue());
         }
