@@ -26,11 +26,9 @@ import cucumber.runner.TimeService;
 import cucumber.runtime.BackendModuleBackendSupplier;
 import cucumber.runtime.ClassFinder;
 import cucumber.runtime.CucumberException;
-import cucumber.runtime.FeatureCompiler;
 import cucumber.runtime.FeaturePathFeatureSupplier;
 import cucumber.runtime.filter.Filters;
 import cucumber.runtime.formatter.Plugins;
-import cucumber.runtime.filter.RerunFilters;
 import cucumber.runtime.formatter.PluginFactory;
 import cucumber.runtime.model.FeatureLoader;
 import cucumber.runner.ThreadLocalRunnerSupplier;
@@ -101,8 +99,7 @@ public class CucumberRunner {
         }
 
         FeatureLoader featureLoader = new FeatureLoader(resourceLoader);
-        RerunFilters rerunFilters = new RerunFilters(runtimeOptions, featureLoader);
-        filters = new Filters(runtimeOptions, rerunFilters);
+        filters = new Filters(runtimeOptions);
         this.runnerSupplier = new ThreadLocalRunnerSupplier(runtimeOptions, bus, backendSupplier);
         featureSupplier = new FeaturePathFeatureSupplier(featureLoader, runtimeOptions);
     }
@@ -176,12 +173,9 @@ public class CucumberRunner {
     public Object[][] provideScenarios() {
         try {
             List<Object[]> scenarios = new ArrayList<>();
-            FeatureCompiler compiler = new FeatureCompiler();
             List<CucumberFeature> features = getFeatures();
             for (CucumberFeature feature : features) {
-                List<PickleEvent> pickles = compiler.compileFeature(feature);
-
-                for (PickleEvent pickle : pickles) {
+                for (PickleEvent pickle : feature.getPickles()) {
                     if (filters.matchesFilters(pickle)) {
                         scenarios.add(new Object[]{new PickleEventWrapperImpl(pickle), new CucumberFeatureWrapperImpl(feature)});
                     }
