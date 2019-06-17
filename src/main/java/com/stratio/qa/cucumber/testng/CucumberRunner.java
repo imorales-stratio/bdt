@@ -63,6 +63,8 @@ public class CucumberRunner {
 
     private final RuntimeOptions runtimeOptions;
 
+    private final Plugins plugins;
+
     /**
      * Bootstrap the cucumber runtime
      *
@@ -89,7 +91,7 @@ public class CucumberRunner {
         BackendModuleBackendSupplier backendSupplier = new BackendModuleBackendSupplier(resourceLoader, classFinder, runtimeOptions);
         bus = new TimeServiceEventBus(TimeService.SYSTEM);
 
-        Plugins plugins = new Plugins(classLoader, new PluginFactory(), bus, runtimeOptions);
+        plugins = new Plugins(classLoader, new PluginFactory(), runtimeOptions);
         plugins.addPlugin(reporterTestNG);
 
         Set<Class<? extends ConcurrentEventListener>> implementers = new Reflections("com.stratio.qa.utils").getSubTypesOf(ConcurrentEventListener.class);
@@ -190,6 +192,7 @@ public class CucumberRunner {
     }
 
     List<CucumberFeature> getFeatures() {
+        plugins.setSerialEventBusOnEventListenerPlugins(bus);
 
         List<CucumberFeature> features = featureSupplier.get();
         bus.send(new TestRunStarted(bus.getTime(), bus.getTimeMillis()));

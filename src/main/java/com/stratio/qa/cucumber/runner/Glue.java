@@ -16,8 +16,10 @@
 
 package com.stratio.qa.cucumber.runner;
 
+import cucumber.runner.EventBus;
 import cucumber.runtime.DuplicateStepDefinitionException;
 import cucumber.runtime.HookDefinition;
+import cucumber.runtime.ScenarioScoped;
 import cucumber.runtime.StepDefinition;
 import io.cucumber.stepexpression.Argument;
 import cucumber.api.StepDefinitionReporter;
@@ -44,6 +46,12 @@ public final class Glue implements cucumber.runtime.Glue {
 
     final List<HookDefinition> afterStepHooks = new ArrayList<>();
 
+    private final EventBus bus;
+
+    public Glue(EventBus bus) {
+        this.bus = bus;
+    }
+
     @Override
     public void addStepDefinition(StepDefinition stepDefinition) {
         StepDefinition previous = stepDefinitionsByPattern.get(stepDefinition.getPattern());
@@ -51,6 +59,8 @@ public final class Glue implements cucumber.runtime.Glue {
             throw new DuplicateStepDefinitionException(previous, stepDefinition);
         }
         stepDefinitionsByPattern.put(stepDefinition.getPattern(), stepDefinition);
+        // Custom glue, we don't send StepDefinedEvent to bus
+        //bus.send(new StepDefinedEvent(bus.getTime(), bus.getTimeMillis(), stepDefinition));
     }
 
     @Override
@@ -152,6 +162,10 @@ public final class Glue implements cucumber.runtime.Glue {
         Iterator<HookDefinition> hookIterator = beforeHooks.iterator();
         while (hookIterator.hasNext()) {
             HookDefinition hook = hookIterator.next();
+            if (hook instanceof ScenarioScoped) {
+                ScenarioScoped scenarioScopedHookDefinition = (ScenarioScoped) hook;
+                scenarioScopedHookDefinition.disposeScenarioScope();
+            }
             if (hook.isScenarioScoped()) {
                 hookIterator.remove();
             }
@@ -162,6 +176,10 @@ public final class Glue implements cucumber.runtime.Glue {
         Iterator<Map.Entry<String, StepDefinition>> stepDefinitionIterator = stepDefinitions.entrySet().iterator();
         while (stepDefinitionIterator.hasNext()) {
             StepDefinition stepDefinition = stepDefinitionIterator.next().getValue();
+            if (stepDefinition instanceof ScenarioScoped) {
+                ScenarioScoped scenarioScopedStepDefinition = (ScenarioScoped) stepDefinition;
+                scenarioScopedStepDefinition.disposeScenarioScope();
+            }
             if (stepDefinition.isScenarioScoped()) {
                 stepDefinitionIterator.remove();
             }

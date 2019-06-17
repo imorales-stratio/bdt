@@ -75,7 +75,7 @@ public class ReplacementAspect {
 
     @After(value = "runnerInit(bus, backends, runtimeOptions)")
     public void runnerInitGlue(JoinPoint jp, EventBus bus, Collection<? extends Backend> backends, RuntimeOptions runtimeOptions) throws Throwable {
-        glue = new Glue();
+        glue = new Glue(bus);
         for (Backend backend : backends) {
             backend.loadGlue(glue, runtimeOptions.getGlue());
         }
