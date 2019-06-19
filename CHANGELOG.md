@@ -7,6 +7,8 @@ Only listing significant user-visible, not internal code cleanups and minor bug 
 * [QATM-2490] Save service response in environment variable without File parameters
 * [QATM-2494] Fix Permission denied error when we try to copy a file and destination file name is not defined 
 * [QATM-1896] Allow standalone-chrome usage without grid
+* [QATM-2533] Allow local variables in runOnEnv and skipOnEnv tags
+* [QATM-2534] Fix Jira integration using @ignore @tillfixed(XXX)
 
 ## 0.11.0 (June 11, 2019)
 
@@ -23,6 +25,7 @@ Only listing significant user-visible, not internal code cleanups and minor bug 
 * [QATM-2363] Add step typing textx if the element exists using selenium
 * [QATM-2365] Add retrieve value js
 * [QATM-2488] Add tag to avoid execution when environment variables not defined
+* [QATM-2541] New step local command execution polling
 
 ## 0.10.0 (May 23, 2019)
 
