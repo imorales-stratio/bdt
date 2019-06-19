@@ -132,6 +132,8 @@ public class CukesGHooks extends BaseGSpec implements ConcurrentEventListener {
                     stepFailedText.append(" | ").append(elements[0]);
                 } catch (Exception ignore) {
                 }
+            } else {
+                StepException.INSTANCE.setException(new Exception("FAILED SCENARIO"));
             }
             logger.error(stepFailedText.toString());
         }
