@@ -15,6 +15,9 @@ Only listing significant user-visible, not internal code cleanups and minor bug 
 * [QATM-2534] Fix Jira integration using @ignore @tillfixed(XXX)
 * [QATM-2299] Add screenshot in cucumber report when selenium step fails
 * [QATM-2299] Fix chromeFullScreenCapture method
+* [QATM-2556] return multiline result in local execution as such
+* [QATM-2555] Add ignite, k8s and etcd in check constraints step
+* [QATM-2558] Add arangodb in check constraints step
 
 ## 0.11.0 (June 11, 2019)
 
@@ -157,3 +160,4 @@ Only listing significant user-visible, not internal code cleanups and minor bug 
 * Added new aspect to force the browser name and version in tests development ,using FORCE_BROWSER (even availableUniqueBrowsers factory is defined).
 
   Eg: mvn -U verify -DSELENIUM_GRID=jenkins.stratio.com:4444 **-DFORCE_BROWSER=chrome_33**
+
