@@ -23,6 +23,9 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import io.cucumber.datatable.DataTable;
+import org.hjson.JsonArray;
+import org.hjson.JsonObject;
+import org.hjson.JsonValue;
 import org.json.JSONArray;
 
 import java.io.*;
@@ -252,19 +255,41 @@ public class RestSpec extends BaseGSpec {
     private void createResourceIfNotExist(String resource, String resourceId, String endPoint, String loginInfo, boolean doesNotExist, String baseData, String type, DataTable modifications) throws Exception {
         Integer expectedStatusCreate = 201;
         Integer expectedStatusDelete = 200;
-        String endPointResource = endPoint + "/" + resourceId;
+        String endPointResource = endPoint + resourceId;
+        String endPointPolicy = "/service/gosecmanagement/api/policy";
+        String endPointPolicies = "/service/gosecmanagement/api/policies";
+        String newEndPoint = "";
+
+        if (endPoint.contains("id")) {
+            newEndPoint = endPoint.replace("?id=", "");
+        } else {
+            newEndPoint = endPoint.substring(0, endPoint.length() - 1);
+        }
 
         try {
             assertThat(commonspec.getRestHost().isEmpty() || commonspec.getRestPort().isEmpty());
 
             if (resource.equals("policy")) {
-                sendRequestNoDataTable("GET", endPoint, loginInfo, null, null);
+                sendRequestNoDataTable("GET", endPointPolicy, loginInfo, null, null);
                 if (commonspec.getResponse().getStatusCode() == 200) {
                     commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.list[] | select (.name == \"" + resourceId + "\").id' | sed s/\\\"//g");
                     String policyId = commonspec.getCommandResult().trim();
                     if (!policyId.equals("")) {
                         commonspec.getLogger().debug("PolicyId obtained: {}", policyId);
-                        endPointResource = endPoint + "/" + policyId;
+                        endPointResource = newEndPoint + "/" + policyId;
+                    }
+                } else {
+                    if (commonspec.getResponse().getStatusCode() == 404) {
+                        commonspec.getLogger().warn("Error 404 accesing endpoint {}: checking the new endpoint for Gosec 1.1.1", endPointPolicy);
+                        sendRequestNoDataTable("GET", endPointPolicies, loginInfo, null, null);
+                        if (commonspec.getResponse().getStatusCode() == 200) {
+                            commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.list[] | select (.name == \"" + resourceId + "\").id' | sed s/\\\"//g");
+                            String policyId = commonspec.getCommandResult().trim();
+                            if (!policyId.equals("")) {
+                                commonspec.getLogger().debug("PolicyId obtained: {}", policyId);
+                                endPointResource = newEndPoint + "?id=" + policyId;
+                            }
+                        }
                     }
                 }
             }
@@ -272,7 +297,7 @@ public class RestSpec extends BaseGSpec {
             sendRequestNoDataTable("GET", endPointResource, loginInfo, null, null);
 
             if (commonspec.getResponse().getStatusCode() != 200) {
-                sendRequest("POST", endPoint, loginInfo, baseData, type, modifications);
+                sendRequest("POST", newEndPoint, loginInfo, baseData, type, modifications);
                 try {
                     if (commonspec.getResponse().getStatusCode() == 409) {
                         commonspec.getLogger().warn("The resource {} already exists", resourceId);
@@ -324,19 +349,40 @@ public class RestSpec extends BaseGSpec {
     @When("^I delete '(policy|user|group)' '(.+?)' using API service path '(.+?)'( with user and password '(.+:.+?)')? if it exists$")
     public void deleteUserIfExists(String resource, String resourceId, String endPoint, String loginInfo) throws Exception {
         Integer expectedStatusDelete = 200;
-        String endPointResource = endPoint + "/" + resourceId;
+        String endPointResource = endPoint + resourceId;
+        String endPointPolicy = "/service/gosecmanagement/api/policy";
+        String endPointPolicies = "/service/gosecmanagement/api/policies";
+
+        if (endPoint.contains("id")) {
+            endPoint = endPoint.replace("?id=", "");
+        } else {
+            endPoint = endPoint.substring(0, endPoint.length() - 1);
+        }
 
         try {
             assertThat(commonspec.getRestHost().isEmpty() || commonspec.getRestPort().isEmpty());
 
             if (resource.equals("policy")) {
-                sendRequestNoDataTable("GET", endPoint, loginInfo, null, null);
+                sendRequestNoDataTable("GET", endPointPolicy, loginInfo, null, null);
                 if (commonspec.getResponse().getStatusCode() == 200) {
                     commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.list[] | select (.name == \"" + resourceId + "\").id' | sed s/\\\"//g");
                     String policyId = commonspec.getCommandResult().trim();
                     if (!policyId.equals("")) {
                         commonspec.getLogger().debug("PolicyId obtained: {}", policyId);
                         endPointResource = endPoint + "/" + policyId;
+                    }
+                } else {
+                    if (commonspec.getResponse().getStatusCode() == 404) {
+                        commonspec.getLogger().warn("Error 404 accesing endpoint {}: checking the new endpoint for Gosec 1.1.1", endPointPolicy);
+                        sendRequestNoDataTable("GET", endPointPolicies, loginInfo, null, null);
+                        if (commonspec.getResponse().getStatusCode() == 200) {
+                            commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.list[] | select (.name == \"" + resourceId + "\").id' | sed s/\\\"//g");
+                            String policyId = commonspec.getCommandResult().trim();
+                            if (!policyId.equals("")) {
+                                commonspec.getLogger().debug("PolicyId obtained: {}", policyId);
+                                endPointResource = endPoint + "?id=" + policyId;
+                            }
+                        }
                     }
                 }
             }
@@ -569,6 +615,7 @@ public class RestSpec extends BaseGSpec {
     @When("^I get id from policy with name '(.+?)' and save it in environment variable '(.+?)'$")
     public void getPolicyId(String policyName, String envVar) throws Exception {
         String endPoint = "/service/gosecmanagement/api/policy";
+        String newEndPoint = "/service/gosecmanagement/api/policies";
         assertThat(commonspec.getRestHost().isEmpty() || commonspec.getRestPort().isEmpty());
         sendRequestNoDataTable("GET", endPoint, null, null, null);
         if (commonspec.getResponse().getStatusCode() == 200) {
@@ -578,7 +625,21 @@ public class RestSpec extends BaseGSpec {
                 fail("Error obtaining ID from policy " + policyName);
             }
         } else {
-            fail("Error obtaining policies from gosecmanagement (Response code = " + commonspec.getResponse().getStatusCode() + ")");
+            if (commonspec.getResponse().getStatusCode() == 404) {
+                commonspec.getLogger().warn("Error 404 accesing endpoint {}: checking the new endpoint for Gosec 1.1.1", endPoint);
+                sendRequestNoDataTable("GET", newEndPoint, null, null, null);
+                if (commonspec.getResponse().getStatusCode() == 200) {
+                    commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.list[] | select (.name == \"" + policyName + "\").id' | sed s/\\\"//g");
+                    commonspec.runCommandLoggerAndEnvVar(0, envVar, Boolean.TRUE);
+                    if (ThreadProperty.get(envVar) == null || ThreadProperty.get(envVar).trim().equals("")) {
+                        fail("Error obtaining ID from policy " + policyName);
+                    }
+                } else {
+                    fail("Error obtaining policies from gosecmanagement /api/policies (Response code = " + commonspec.getResponse().getStatusCode() + ")");
+                }
+            } else {
+                fail("Error obtaining policies from gosecmanagement /api/policy (Response code = " + commonspec.getResponse().getStatusCode() + ")");
+            }
         }
     }
 
@@ -602,4 +663,44 @@ public class RestSpec extends BaseGSpec {
         }
     }
 
+    @When("^I include '(user|group)' '(.+?)' in tenant '(.+?)'$")
+    public void includeResourceInTenant(String resource, String resourceId, String tenantId) throws Exception {
+        String endPointGetAllUsers = "/service/gosec-identities-daas/identities/users";
+        String endPointGetAllGroups = "/service/gosec-identities-daas/identities/groups";
+        String endPointTenant = "/service/gosec-identities-daas/identities/tenants/" + tenantId;
+        assertThat(commonspec.getRestHost().isEmpty() || commonspec.getRestPort().isEmpty());
+        String uidOrGid = "uid";
+        String uidOrGidTenant = "uids";
+        String endPointGosec = endPointGetAllUsers;
+        if (resource.equals("group")) {
+            uidOrGid = "gid";
+            uidOrGidTenant = "gids";
+            endPointGosec = endPointGetAllGroups;
+        }
+        sendRequestNoDataTable("GET", endPointGosec, null, null, null);
+        if (commonspec.getResponse().getStatusCode() == 200) {
+            if (commonspec.getResponse().getResponse().contains("\"" + uidOrGid + "\":\"" + resourceId + "\"")) {
+                sendRequestNoDataTable("GET", endPointTenant, null, null, null);
+                if (commonspec.getResponse().getStatusCode() == 200) {
+                    JsonObject jsonTenantInfo = new JsonObject(JsonValue.readHjson(commonspec.getResponse().getResponse()).asObject());
+                    if (((JsonArray) jsonTenantInfo.get(uidOrGidTenant)).values().contains(JsonValue.valueOf(resourceId))) {
+                        commonspec.getLogger().debug("{} is already included in tenant", resourceId);
+                    } else {
+                        ((JsonArray) jsonTenantInfo.get(uidOrGidTenant)).add(resourceId);
+                        Future<Response> response = commonspec.generateRequest("PATCH", false, null, null, endPointTenant, JsonValue.readHjson(jsonTenantInfo.toString()).toString(), "json", "");
+                        commonspec.setResponse("PATCH", response.get());
+                        if (commonspec.getResponse().getStatusCode() != 204) {
+                            throw new Exception("Error adding " + resource + " " + resourceId + " in tenant " + tenantId + " - Status code: " + commonspec.getResponse().getStatusCode());
+                        }
+                    }
+                } else {
+                    throw new Exception("Error obtaining info from tenant " + tenantId + " - Status code: " + commonspec.getResponse().getStatusCode());
+                }
+            } else {
+                throw new Exception(resource + " " + resourceId + " doesn't exist in Gosec");
+            }
+        } else {
+            throw new Exception("Error obtaining " + resource + "s - Status code: " + commonspec.getResponse().getStatusCode());
+        }
+    }
 }
