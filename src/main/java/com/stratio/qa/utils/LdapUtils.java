@@ -16,6 +16,14 @@
 
 package com.stratio.qa.utils;
 
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.ldaptive.*;
 import org.ldaptive.pool.BlockingConnectionPool;
 import org.ldaptive.pool.PooledConnectionFactory;
@@ -42,10 +50,12 @@ public class LdapUtils {
     private String url;
 
     public LdapUtils() {
-        this.user = System.getProperty("LDAP_USER", "cn=exampleuser,dc=org");
-        this.password = System.getProperty("LDAP_PASSWORD", "password");
-        this.ssl = System.getProperty("LDAP_SSL", "false").equals("true") ? true : false;
-        this.url = (this.ssl == true ? "ldaps://" : "ldap://") + System.getProperty("LDAP_URL", "example.host.com");
+        this.user = System.getProperty("LDAP_USER");
+        this.password = System.getProperty("LDAP_PASSWORD");
+        this.ssl = (System.getProperty("LDAP_SSL", "true")).equals("true") ? true : false;
+        String ldapUrl = System.getProperty("LDAP_URL") != null ? System.getProperty("LDAP_URL") : ThreadProperty.get("LDAP_URL") != null ? ThreadProperty.get("LDAP_URL") : "";
+        String ldapPort = System.getProperty("LDAP_PORT") != null ? System.getProperty("LDAP_PORT") : ThreadProperty.get("LDAP_PORT") != null ? ThreadProperty.get("LDAP_PORT") : "";
+        this.url = (this.ssl == true ? "ldaps://" : "ldap://") + ldapUrl + ":" + ldapPort;
     }
 
     public void connect() {
@@ -113,4 +123,141 @@ public class LdapUtils {
             conn.close();
         }
     }
+
+    public String hashPassword(String password) throws NoSuchAlgorithmException {
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] salt = new byte[4];
+        secureRandom.nextBytes(salt);
+
+        MessageDigest crypt = MessageDigest.getInstance("SHA-1");
+        crypt.reset();
+        crypt.update(password.getBytes());
+        crypt.update(salt);
+        byte[] hash = crypt.digest();
+
+        byte[] hashPlusSalt = new byte[hash.length + salt.length];
+        System.arraycopy(hash, 0, hashPlusSalt, 0, hash.length);
+        System.arraycopy(salt, 0, hashPlusSalt, hash.length, salt.length);
+
+        return new StringBuilder().append("{SSHA}")
+                .append(Base64.getEncoder().encodeToString(hashPlusSalt))
+                .toString();
+    }
+
+    public int getLDAPMaxUidNumber() throws LdapException {
+        return this.getLDAPMaxNumber("UID");
+    }
+
+    public int getLDAPMaxGidNumber() throws LdapException {
+        return this.getLDAPMaxNumber("GID");
+    }
+
+    private int getLDAPMaxNumber(String type) throws LdapException {
+        String base = "";
+        String attr = "";
+        int maxId = 0;
+
+        switch (type) {
+            case "UID":
+                base = ThreadProperty.get("LDAP_USER_DN");
+                attr = "uidNumber";
+                break;
+            case "GID":
+                base = ThreadProperty.get("LDAP_GROUP_DN");
+                attr = "gidNumber";
+                break;
+            default:
+                break;
+        }
+
+        Matcher matcher = this.getSearchResult(base, "cn=*", attr, ".*?" + attr + "\\[(\\d+)\\].*?");
+        int actualId;
+        while (matcher.find()) {
+            actualId = Integer.parseInt(matcher.group(1));
+            if (actualId >= maxId) {
+                maxId = actualId;
+            }
+        }
+        return maxId;
+    }
+
+    public int getLDAPgidNumber(String groupCn) throws LdapException {
+        int gid = 0;
+
+        Matcher matcher = this.getSearchResult(ThreadProperty.get("LDAP_GROUP_DN"), "cn=" + groupCn, "gidNumber", ".*gidNumber\\[(\\d+)\\].*");
+        if (matcher.matches()) {
+            gid = Integer.parseInt(matcher.group(1));
+        }
+        return gid;
+    }
+
+    public ArrayList<String> getLDAPgroupsContainingUserAsAttribute(String userUid, String attr) throws LdapException {
+        ArrayList<String> groupsList = new ArrayList<>();
+
+        Matcher matcher = this.getSearchResult(ThreadProperty.get("LDAP_GROUP_DN"), attr + "=uid=" + userUid + "," + ThreadProperty.get("LDAP_USER_DN"), "cn", ".*?cn\\[([^\\[\\]]*)\\].*?");
+        while (matcher.find()) {
+            groupsList.add(matcher.group(1));
+        }
+
+        return groupsList;
+    }
+
+    public void deleteLDAPuserFromAllGroupsAttribute(String userUid, String attr) throws LdapException {
+        ArrayList<String> groupsList = this.getLDAPgroupsContainingUserAsAttribute(userUid, attr);
+
+        Iterator<String> iter = groupsList.iterator();
+        while (iter.hasNext()) {
+            this.deleteLDAPuserFromGroupAttribute(userUid, iter.next(), attr);
+        }
+    }
+
+    public void deleteLDAPuserFromGroupAttribute(String userUid, String groupCn, String attr) throws LdapException {
+        String groupDn = "cn=" + groupCn + "," + ThreadProperty.get("LDAP_GROUP_DN");
+        String userDn = "uid=" + userUid + "," + ThreadProperty.get("LDAP_USER_DN");
+
+        AttributeModification newAttr = new AttributeModification(AttributeModificationType.REMOVE, new LdapAttribute(attr, userDn));
+        this.modify(groupDn, newAttr);
+    }
+
+    public boolean isLDAPuserInGroup(String userUid, String groupCn) throws LdapException {
+        boolean userBelongsToGroup = false;
+
+        Matcher matcher = this.getSearchResult(ThreadProperty.get("LDAP_GROUP_DN"), "(&(cn=" + groupCn + ")(member=uid=" + userUid + "," + ThreadProperty.get("LDAP_USER_DN") + "))", "cn", ".*?cn\\[([^\\[\\]]*)\\].*?");
+        if (matcher.matches()) {
+            userBelongsToGroup = true;
+        }
+
+        return userBelongsToGroup;
+    }
+
+    public boolean userLDAPexists(String userUid) throws LdapException {
+        boolean userExists = false;
+
+        Matcher matcher = this.getSearchResult(ThreadProperty.get("LDAP_USER_DN"), "uid=" + userUid, "cn", ".*?cn\\[([^\\[\\]]*)\\].*?");
+        if (matcher.matches()) {
+            userExists = true;
+        }
+
+        return userExists;
+    }
+
+    public boolean groupLDAPexists(String groupCn) throws LdapException {
+        boolean groupExists = false;
+
+        Matcher matcher = this.getSearchResult(ThreadProperty.get("LDAP_GROUP_DN"), "cn=" + groupCn, "cn", ".*?cn\\[([^\\[\\]]*)\\].*?");
+        if (matcher.matches()) {
+            groupExists = true;
+        }
+
+        return groupExists;
+    }
+
+    private Matcher getSearchResult(String baseDn, String searchFilter, String attribute, String REGEX) throws LdapException {
+        SearchResult search = this.search(new SearchRequest(baseDn, searchFilter, attribute));
+        String INPUT = search.toString();
+        Pattern pattern = Pattern.compile(REGEX);
+
+        return pattern.matcher(INPUT);
+    }
+
 }

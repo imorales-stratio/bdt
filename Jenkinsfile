@@ -89,7 +89,8 @@ hose {
         | -DLDAP_PASSWORD=stratio
         | -DLDAP_SSL=false
         | -DVAULT_URL=%%VAULT
-        | -DLDAP_URL=%%LDAP:389""".stripMargin().stripIndent()
+        | -DLDAP_URL=%%LDAP
+        | -DLDAP_PORT=389""".stripMargin().stripIndent()
     
     DEV = { config ->        
         doCompile(config)
