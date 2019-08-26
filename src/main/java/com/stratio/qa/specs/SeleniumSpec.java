@@ -288,6 +288,20 @@ public class SeleniumSpec extends BaseGSpec {
         commonspec.getPreviousWebElements().getPreviousWebElements().get(index).clear();
     }
 
+    /**
+     * Clear the text on a numbered {@code index} previously found element.
+     * Use this function if you are having problems with seleniumClear
+     * @param index
+     */
+    @When("^I clear the content on text input using keyboard at index '(\\d+)'$")
+    public void seleniumClearKeyboard(Integer index) {
+        assertThat(this.commonspec, scenario, commonspec.getPreviousWebElements()).as("There are less found elements than required")
+                .hasAtLeast(index);
+
+        assertThat(this.commonspec, scenario, commonspec.getPreviousWebElements().getPreviousWebElements().get(index)).isTextField(commonspec.getTextFieldCondition());
+
+        commonspec.getPreviousWebElements().getPreviousWebElements().get(index).sendKeys(Keys.chord(Keys.CONTROL, "a", Keys.DELETE));
+    }
 
     /**
      * Delete or replace the text on a numbered {@code index} previously found element.
