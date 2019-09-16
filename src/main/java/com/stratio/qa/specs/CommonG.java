@@ -1124,8 +1124,7 @@ public class CommonG {
         Future<Response> response = null;
         BoundRequestBuilder request;
         Realm realm = null;
-
-
+        String govTenant = System.getProperty("GOV_TENANT") != null ? System.getProperty("GOV_TENANT") : "NONE";
         if (this.getRestHost() == null) {
             throw new Exception("Rest host has not been set");
         }
@@ -1162,7 +1161,7 @@ public class CommonG {
                 } else if ("gov".equals(type)) {
                     request = request.setHeader("Content-Type", "application/json; charset=UTF-8");
                     request = request.setHeader("Accept", "application/json");
-                    request = request.setHeader("X-TenantID", "NONE");
+                    request = request.setHeader("X-TenantID", govTenant);
                     request = request.setHeader("X-UserID", "admin");
                 }
 
@@ -1201,7 +1200,7 @@ public class CommonG {
                     if ("gov".equals(type)) {
                         request = request.setHeader("Content-Type", "application/json; charset=UTF-8");
                         request = request.setHeader("Accept", "application/json");
-                        request = request.setHeader("X-TenantID", "NONE");
+                        request = request.setHeader("X-TenantID", govTenant);
                         request = request.setHeader("X-UserID", "admin");
                     }
                 } else {
@@ -1214,7 +1213,7 @@ public class CommonG {
                     } else if ("gov".equals(type)) {
                         request = request.setHeader("Content-Type", "application/json; charset=UTF-8");
                         request = request.setHeader("Accept", "application/json");
-                        request = request.setHeader("X-TenantID", "NONE");
+                        request = request.setHeader("X-TenantID", govTenant);
                         request = request.setHeader("X-UserID", "admin");
                     }
                 }
@@ -1259,7 +1258,7 @@ public class CommonG {
                     } else if ("gov".equals(type)) {
                         request = request.setHeader("Content-Type", "application/json; charset=UTF-8");
                         request = request.setHeader("Accept", "application/json");
-                        request = request.setHeader("X-TenantID", "NONE");
+                        request = request.setHeader("X-TenantID", govTenant);
                         request = request.setHeader("X-UserID", "admin");
                     }
 
@@ -1304,7 +1303,7 @@ public class CommonG {
                     } else if ("gov".equals(type)) {
                         request = request.setHeader("Content-Type", "application/json; charset=UTF-8");
                         request = request.setHeader("Accept", "application/json");
-                        request = request.setHeader("X-TenantID", "NONE");
+                        request = request.setHeader("X-TenantID", govTenant);
                         request = request.setHeader("X-UserID", "admin");
                     }
 
@@ -1349,7 +1348,7 @@ public class CommonG {
                     } else if ("gov".equals(type)) {
                         request = request.setHeader("Content-Type", "application/json; charset=UTF-8");
                         request = request.setHeader("Accept", "application/json");
-                        request = request.setHeader("X-TenantID", "NONE");
+                        request = request.setHeader("X-TenantID", govTenant);
                         request = request.setHeader("X-UserID", "admin");
                     }
 
