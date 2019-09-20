@@ -612,10 +612,19 @@ public class RestSpec extends BaseGSpec {
         }
     }
 
-    @When("^I get id from policy with name '(.+?)' and save it in environment variable '(.+?)'$")
-    public void getPolicyId(String policyName, String envVar) throws Exception {
+    @When("^I get id from( tag)? policy with name '(.+?)' and save it in environment variable '(.+?)'$")
+    public void getPolicyId(String tag, String policyName, String envVar) throws Exception {
         String endPoint = "/service/gosecmanagement/api/policy";
         String newEndPoint = "/service/gosecmanagement/api/policies";
+        String errorMessage = "api/policies";
+        String errorMessage2 = "api/policy";
+
+        if (tag != null) {
+            endPoint = "/service/gosecmanagement/api/policy/tag";
+            newEndPoint = "/service/gosecmanagement/api/policies/tags";
+            errorMessage = "api/policies/tags";
+            errorMessage2 = "api/policy/tag";
+        }
         assertThat(commonspec.getRestHost().isEmpty() || commonspec.getRestPort().isEmpty());
         sendRequestNoDataTable("GET", endPoint, null, null, null);
         if (commonspec.getResponse().getStatusCode() == 200) {
@@ -635,10 +644,10 @@ public class RestSpec extends BaseGSpec {
                         fail("Error obtaining ID from policy " + policyName);
                     }
                 } else {
-                    fail("Error obtaining policies from gosecmanagement /api/policies (Response code = " + commonspec.getResponse().getStatusCode() + ")");
+                    fail("Error obtaining policies from gosecmanagement {} (Response code = " + commonspec.getResponse().getStatusCode() + ")", errorMessage);
                 }
             } else {
-                fail("Error obtaining policies from gosecmanagement /api/policy (Response code = " + commonspec.getResponse().getStatusCode() + ")");
+                fail("Error obtaining policies from gosecmanagement {} (Response code = " + commonspec.getResponse().getStatusCode() + ")", errorMessage2);
             }
         }
     }
