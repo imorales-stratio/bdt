@@ -1019,7 +1019,10 @@ public class DcosSpec extends BaseGSpec {
 //        obtainInfoFromDescriptor("TENANT", varTenant);
         obtainInfoFromDescriptor("VAULT_HOST", varVaultHost);
         obtainInfoFromFile(vaultTokenJQ, this.vaultResponsePath, varVaultToken);
-        obtainInfoFromDescriptor("PUBLIC_NODE", varPublicNode);
+        commonspec.getRemoteSSHConnection().runCommand("set -o pipefail && cat " + this.descriptorPath + " | " + "jq -crM '.nodes[] | select((.role ?== \"agent\") and .public ?== true)'" + " | " + "wc -l");
+        if (!(commonspec.getRemoteSSHConnection().getResult().equals("0"))) {
+            obtainInfoFromDescriptor("PUBLIC_NODE", varPublicNode);
+        }
         obtainInfoFromDescriptor("ACCESS_POINT", varAccessPoint);
     }
 

@@ -2,7 +2,11 @@
 
 Only listing significant user-visible, not internal code cleanups and minor bug fixes.
 
-## 0.12.0 (upcoming)
+## 0.13.0 (upcoming)
+
+* Pending changelog
+
+## 0.12.0 (October 03, 2019)
 
 * [QATM-2490] Save service response in environment variable without File parameters
 * [QATM-2494] Fix Permission denied error when we try to copy a file and destination file name is not defined 
@@ -29,6 +33,13 @@ Only listing significant user-visible, not internal code cleanups and minor bug 
 * [QATM-2786] New steps to set default values in tenant and gosec variables
 * [QATM-2786] New step to include an user or group in existing tenant
 * [QATM-2789] Support doesn't contain in SSH Command output
+* [QATM-2792] Add steps for LDAP
+* [QATM-2793] Use other SSH port rather than default 22
+* [QATM-2367] New clear function with keys Control and Delete
+* [QATM-2817] Add MarathonLB folder to classpath
+* [QATM-2833] Parametrize TenantID Governance
+* [SECTY-1482] Create step to get id from tag policies
+* [QATM-2895] Modify step to retrieve info from bootstrap
 
 ## 0.11.0 (June 11, 2019)
 
