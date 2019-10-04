@@ -99,7 +99,7 @@ public abstract class BaseGTest {
     /**
      * Method executed before a class.
      */
-    @AfterClass()
+    @AfterClass(alwaysRun = true)
     public void afterGClass() {
         if (cucumberRunner == null) {
             return;
