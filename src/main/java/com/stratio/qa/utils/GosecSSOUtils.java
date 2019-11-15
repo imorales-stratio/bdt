@@ -58,15 +58,20 @@ public class GosecSSOUtils {
 
     public String ssoHost = System.getProperty("ssoHost", "sso.paas.labs.stratio.com");
 
+    private String governance;
+
     public String managementHost = System.getProperty("managementHost", "/service/gosecmanagement");
+
+    private String governanceProfileHost = System.getProperty("govProfileHost", "/service/dg-businessglossary-api/dictionary/user/profile");
 
     private Boolean verifyHost = true;
 
-    public GosecSSOUtils(String ssHost, String userName, String passWord, String tenant) {
+    public GosecSSOUtils(String ssHost, String userName, String passWord, String tenant, String gov) {
         this.ssoHost = ssHost;
         this.userName = userName;
         this.passWord = passWord;
         this.tenant = tenant;
+        this.governance = gov;
     }
 
 
@@ -129,9 +134,13 @@ public class GosecSSOUtils {
                 logger.debug(oneHeader.getName() + ":" + oneHeader.getValue());
             }
 
-            HttpGet managementGet = new HttpGet(protocol + ssoHost + managementHost);
-            client.execute(managementGet, context);
-
+            HttpGet getRequest;
+            if (governance != null) {
+                getRequest = new HttpGet(protocol + ssoHost + governanceProfileHost);
+            } else {
+                getRequest = new HttpGet(protocol + ssoHost + managementHost);
+            }
+            client.execute(getRequest, context);
             for (Cookie oneCookie : context.getCookieStore().getCookies()) {
                 logger.debug(oneCookie.getName() + ":" + oneCookie.getValue());
                 cookieToken.put(oneCookie.getName(), oneCookie.getValue());

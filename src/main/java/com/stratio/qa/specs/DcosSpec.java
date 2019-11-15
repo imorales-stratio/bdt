@@ -121,14 +121,17 @@ public class DcosSpec extends BaseGSpec {
      * @param passWord password
      * @throws Exception exception
      */
-    @Given("^I( do not)? set sso token using host '(.+?)' with user '(.+?)' and password '(.+?)'( and tenant '(.+?)')?( without host name verification)?$")
-    public void setGoSecSSOCookie(String set, String ssoHost, String userName, String passWord, String tenant, String hostVerifier) throws Exception {
+    @Given("^I( do not)? set sso( governance)? token using host '(.+?)' with user '(.+?)' and password '(.+?)'( and tenant '(.+?)')?( without host name verification)?$")
+    public void setGoSecSSOCookie(String set, String gov, String ssoHost, String userName, String passWord, String tenant, String hostVerifier) throws Exception {
         if (set == null) {
-            GosecSSOUtils ssoUtils = new GosecSSOUtils(ssoHost, userName, passWord, tenant);
+            GosecSSOUtils ssoUtils = new GosecSSOUtils(ssoHost, userName, passWord, tenant, gov);
             ssoUtils.setVerifyHost(hostVerifier == null);
             HashMap<String, String> ssoCookies = ssoUtils.ssoTokenGenerator();
 
             String[] tokenList = {"user", "dcos-acs-auth-cookie"};
+            if (gov != null) {
+                tokenList = new String[]{"user", "dcos-acs-auth-cookie", "stratio-governance-auth"};
+            }
             List<com.ning.http.client.cookie.Cookie> cookiesAtributes = addSsoToken(ssoCookies, tokenList);
 
             commonspec.setCookies(cookiesAtributes);
