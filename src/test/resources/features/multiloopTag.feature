@@ -3,6 +3,9 @@ Feature: Feature used in testing multiloop tag aspect
   Scenario: wipe test file 1.
     Given I run 'rm -f testMultiloopOutput1.txt' locally
 
+  Scenario: Write local var
+    Given I save '1,2' in variable 'AGENT_LIST_LOCAL'
+
   @multiloop(AGENT_LIST=>AGENT1_NAME)
   Scenario: write <AGENT1_NAME> a file 1 with the final result of the scenario.
     Given I run 'echo "<AGENT1_NAME>" >> testMultiloopOutput1.txt' locally
@@ -15,7 +18,22 @@ Feature: Feature used in testing multiloop tag aspect
     Given I run 'cat testMultiloopOutput1.txt | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g'' locally
     Then the command output contains '1\n2'
 
-  Scenario: wipe test file 2.
+  Scenario: wipe test file 1.
+    Given I run 'rm -f testMultiloopOutput1.txt' locally
+
+  @multiloop(AGENT_LIST_LOCAL=>AGENT1_NAME)
+  Scenario: write <AGENT1_NAME> a file 1 with the final result of the scenario (local variable)
+    Given I run 'echo "<AGENT1_NAME>" >> testMultiloopOutput1.txt' locally
+
+  Scenario: verify file 1 content size (local variable)
+    Given I run 'wc -l testMultiloopOutput1.txt' locally
+    Then the command output contains '2'
+
+  Scenario: verify file 1 content (local variable)
+    Given I run 'cat testMultiloopOutput1.txt | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g'' locally
+    Then the command output contains '1\n2'
+
+  Scenario: wipe test file 2
     Given I run 'rm -f testMultiloopOutput2.txt' locally
 
   @multiloop(AGENT_LIST=>AGENT1_NAME,AGENT_LIST=>AGENT2_NAME)
@@ -30,8 +48,23 @@ Feature: Feature used in testing multiloop tag aspect
     Given I run 'cat testMultiloopOutput2.txt | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g'' locally
     Then the command output contains '1,1\n2,1\n1,2\n2,2'
 
-  Scenario: wipe test file 3.
-      Given I run 'rm -f testMultiloopOutput3.txt' locally
+  Scenario: wipe test file 2.
+      Given I run 'rm -f testMultiloopOutput2.txt' locally
+
+  @multiloop(AGENT_LIST_LOCAL=>AGENT1_NAME,AGENT_LIST_LOCAL=>AGENT2_NAME)
+  Scenario: write <AGENT1_NAME>,<AGENT2_NAME> a file 2 with the final result of the scenario (local variable)
+    Given I run 'echo "<AGENT1_NAME>,<AGENT2_NAME>" >> testMultiloopOutput2.txt' locally
+
+  Scenario: verify file 2 content size (local variable)
+    Given I run 'wc -l testMultiloopOutput2.txt' locally
+    Then the command output contains '4'
+
+  Scenario: verify file 2 content (local variable)
+    Given I run 'cat testMultiloopOutput2.txt | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g'' locally
+    Then the command output contains '1,1\n2,1\n1,2\n2,2'
+
+  Scenario: wipe test file 3 (local variable)
+    Given I run 'rm -f testMultiloopOutput3.txt' locally
 
   @multiloop(AGENT_LIST=>AGENT1_NAME,AGENT_LIST=>AGENT2_NAME,AGENT_LIST=>AGENT3_NAME)
   Scenario: write <AGENT1_NAME>,<AGENT2_NAME>,<AGENT3_NAME> a file 3 with the final result of the scenario.
@@ -42,6 +75,21 @@ Feature: Feature used in testing multiloop tag aspect
     Then the command output contains '8'
 
   Scenario: verify file 3 content.
+    Given I run 'cat testMultiloopOutput3.txt | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g'' locally
+    Then the command output contains '1,1,1\n2,1,1\n1,2,1\n2,2,1\n1,1,2\n2,1,2\n1,2,2\n2,2,2'
+
+  Scenario: wipe test file 3 (local variable)
+    Given I run 'rm -f testMultiloopOutput3.txt' locally
+
+  @multiloop(AGENT_LIST_LOCAL=>AGENT1_NAME,AGENT_LIST_LOCAL=>AGENT2_NAME,AGENT_LIST_LOCAL=>AGENT3_NAME)
+  Scenario: write <AGENT1_NAME>,<AGENT2_NAME>,<AGENT3_NAME> a file 3 with the final result of the scenario (local variable)
+    Given I run 'echo "<AGENT1_NAME>,<AGENT2_NAME>,<AGENT3_NAME>" >> testMultiloopOutput3.txt' locally
+
+  Scenario: verify file 3 content size (local variable)
+    Given I run 'wc -l testMultiloopOutput3.txt' locally
+    Then the command output contains '8'
+
+  Scenario: verify file 3 content (local variable)
     Given I run 'cat testMultiloopOutput3.txt | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g'' locally
     Then the command output contains '1,1,1\n2,1,1\n1,2,1\n2,2,1\n1,1,2\n2,1,2\n1,2,2\n2,2,2'
 

@@ -3,6 +3,9 @@ Feature: Feature used in testing loop tag aspect
   Scenario: wipe test file.
     Given I run 'rm -f testOutput.txt' locally
 
+  Scenario: Write local var
+    Given I save '1,2,3' in variable 'AGENT_LIST_LOCAL'
+
   @loop(AGENT_LIST,VAR_NAME)
   Scenario: write <VAR_NAME> a file the final result of the scenario.
     Given I run 'echo <VAR_NAME> >> testOutput.txt' locally
@@ -10,6 +13,14 @@ Feature: Feature used in testing loop tag aspect
   Scenario: verify file content.
     Given I run 'wc -l testOutput.txt' locally
     Then the command output contains '2'
+
+  @loop(AGENT_LIST_LOCAL,VAR_NAME)
+  Scenario: write <VAR_NAME> a file the final result of the scenario (local variable)
+    Given I run 'echo <VAR_NAME> >> testOutput1.txt' locally
+
+  Scenario: verify file content (local variable)
+    Given I run 'wc -l testOutput1.txt' locally
+    Then the command output contains '3'
 
   @loop(AGENT_LIST,VAR_NAME)
   Scenario: With scenarios outlines and datatables

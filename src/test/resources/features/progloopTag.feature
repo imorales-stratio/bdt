@@ -1,5 +1,9 @@
 Feature: Feature used in testing progamatic loop tag aspect
 
+
+  Scenario: Write local var
+    Given I save '3' in variable 'AGENT_LIST_LOCAL'
+
   @progloop(PROGLOOP,VAR_NAME)
   Scenario: Execute scenario ${PROGLOOP} times
     Given I run 'echo <VAR_NAME>' locally
@@ -12,6 +16,16 @@ Feature: Feature used in testing progamatic loop tag aspect
     Then the command output contains '<VAR_NAME>'
 
   Scenario: Clean
+    Given I run 'rm testProgLoopOutput.txt' locally
+
+  @runOnEnv(AGENT_LIST_LOCAL)
+  @progloop(AGENT_LIST_LOCAL,VAR_NAME)
+  Scenario: This scenario should be executed (local variable)
+    Given I run 'echo <VAR_NAME> >> testProgLoopOutput.txt' locally
+    When I run 'wc -l testProgLoopOutput.txt' locally
+    Then the command output contains '<VAR_NAME>'
+
+  Scenario: Clean (local variable)
     Given I run 'rm testProgLoopOutput.txt' locally
 
   @skipOnEnv(PROGLOOP)

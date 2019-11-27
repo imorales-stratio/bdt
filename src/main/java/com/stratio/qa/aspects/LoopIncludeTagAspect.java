@@ -17,6 +17,7 @@
 package com.stratio.qa.aspects;
 
 import com.stratio.qa.exceptions.IncludeException;
+import com.stratio.qa.utils.ThreadProperty;
 import cucumber.runtime.io.Resource;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -68,7 +69,7 @@ public class LoopIncludeTagAspect {
                 int times = 0;
                 listParams = lines.get(s).substring((lines.get(s).lastIndexOf("(") + 1), (lines.get(s).length()) - 1).split(",")[0];
 
-                elem = System.getProperty(listParams);
+                elem = System.getProperty(listParams) != null ? System.getProperty(listParams) : ThreadProperty.get(listParams);
 
                 if (elem == null) {
                     lines.set(s, "@error @errorMessage(Variable__" + listParams + "__is__not__defined.)");
@@ -122,13 +123,13 @@ public class LoopIncludeTagAspect {
                     String paramName = elementParts[1];
                     String[] elems;
 
-                    if (System.getProperty(listParam) == null) {
+                    if (System.getProperty(listParam) == null && ThreadProperty.get(listParam) == null) {
                         lines.set(s, "@error @errorMessage(Variable__" + listParam + "__is__not__defined.)");
                         skipReplacement = true;
                         break;
                     }
 
-                    elems = System.getProperty(listParam).split(",");
+                    elems = System.getProperty(listParam) != null ? System.getProperty(listParam).split(",") : ThreadProperty.get(listParam).split(",");
                     params.put(paramName, elems);
                 }
 
@@ -155,7 +156,7 @@ public class LoopIncludeTagAspect {
                 String[] elems = new String[0];
                 listParams = lines.get(s).substring((lines.get(s).lastIndexOf("(") + 1), (lines.get(s).length()) - 1).split(",")[0];
                 try {
-                    elems = System.getProperty(listParams).split(",");
+                    elems = System.getProperty(listParams) != null ? System.getProperty(listParams).split(",") : ThreadProperty.get(listParams).split(",");
                 } catch (Exception e) {
                     lines.set(s, "@error @errorMessage(Variable__" + listParams + "__is__not__defined.)");
                     skipReplacement = true;
