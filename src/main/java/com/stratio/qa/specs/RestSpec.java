@@ -280,6 +280,13 @@ public class RestSpec extends BaseGSpec {
                     if (!policyId.equals("")) {
                         commonspec.getLogger().debug("PolicyId obtained: {}", policyId);
                         endPointResource = newEndPoint + "/" + policyId;
+                    } else {
+                        commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.[] | select (.name == \"" + resourceId + "\").id' | sed s/\\\"//g");
+                        policyId = commonspec.getCommandResult().trim();
+                        if (!policyId.equals("")) {
+                            commonspec.getLogger().debug("PolicyId obtained: {}", policyId);
+                            endPointResource = newEndPoint + "/" + policyId;
+                        }
                     }
                 } else {
                     if (commonspec.getResponse().getStatusCode() == 404) {
@@ -291,6 +298,13 @@ public class RestSpec extends BaseGSpec {
                             if (!policyId.equals("")) {
                                 commonspec.getLogger().debug("PolicyId obtained: {}", policyId);
                                 endPointResource = newEndPoint + "?id=" + policyId;
+                            } else {
+                                commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.[] | select (.name == \"" + resourceId + "\").id' | sed s/\\\"//g");
+                                policyId = commonspec.getCommandResult().trim();
+                                if (!policyId.equals("")) {
+                                    commonspec.getLogger().debug("PolicyId obtained: {}", policyId);
+                                    endPointResource = newEndPoint + "?id=" + policyId;
+                                }
                             }
                         }
                     }
@@ -373,6 +387,13 @@ public class RestSpec extends BaseGSpec {
                     if (!policyId.equals("")) {
                         commonspec.getLogger().debug("PolicyId obtained: {}", policyId);
                         endPointResource = endPoint + "/" + policyId;
+                    } else {
+                        commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.[] | select (.name == \"" + resourceId + "\").id' | sed s/\\\"//g");
+                        policyId = commonspec.getCommandResult().trim();
+                        if (!policyId.equals("")) {
+                            commonspec.getLogger().debug("PolicyId obtained: {}", policyId);
+                            endPointResource = endPoint + "/" + policyId;
+                        }
                     }
                 } else {
                     if (commonspec.getResponse().getStatusCode() == 404) {
@@ -384,6 +405,13 @@ public class RestSpec extends BaseGSpec {
                             if (!policyId.equals("")) {
                                 commonspec.getLogger().debug("PolicyId obtained: {}", policyId);
                                 endPointResource = endPoint + "?id=" + policyId;
+                            } else {
+                                commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.[] | select (.name == \"" + resourceId + "\").id' | sed s/\\\"//g");
+                                policyId = commonspec.getCommandResult().trim();
+                                if (!policyId.equals("")) {
+                                    commonspec.getLogger().debug("PolicyId obtained: {}", policyId);
+                                    endPointResource = endPoint + "?id=" + policyId;
+                                }
                             }
                         }
                     }
@@ -634,7 +662,11 @@ public class RestSpec extends BaseGSpec {
             commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.list[] | select (.name == \"" + policyName + "\").id' | sed s/\\\"//g");
             commonspec.runCommandLoggerAndEnvVar(0, envVar, Boolean.TRUE);
             if (ThreadProperty.get(envVar) == null || ThreadProperty.get(envVar).trim().equals("")) {
-                fail("Error obtaining ID from policy " + policyName);
+                commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.[] | select (.name == \"" + policyName + "\").id' | sed s/\\\"//g");
+                commonspec.runCommandLoggerAndEnvVar(0, envVar, Boolean.TRUE);
+                if (ThreadProperty.get(envVar) == null || ThreadProperty.get(envVar).trim().equals("")) {
+                    fail("Error obtaining ID from policy " + policyName);
+                }
             }
         } else {
             if (commonspec.getResponse().getStatusCode() == 404) {
@@ -644,7 +676,11 @@ public class RestSpec extends BaseGSpec {
                     commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.list[] | select (.name == \"" + policyName + "\").id' | sed s/\\\"//g");
                     commonspec.runCommandLoggerAndEnvVar(0, envVar, Boolean.TRUE);
                     if (ThreadProperty.get(envVar) == null || ThreadProperty.get(envVar).trim().equals("")) {
-                        fail("Error obtaining ID from policy " + policyName);
+                        commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.[] | select (.name == \"" + policyName + "\").id' | sed s/\\\"//g");
+                        commonspec.runCommandLoggerAndEnvVar(0, envVar, Boolean.TRUE);
+                        if (ThreadProperty.get(envVar) == null || ThreadProperty.get(envVar).trim().equals("")) {
+                            fail("Error obtaining ID from policy " + policyName);
+                        }
                     }
                 } else {
                     fail("Error obtaining policies from gosecmanagement {} (Response code = " + commonspec.getResponse().getStatusCode() + ")", errorMessage);
@@ -750,6 +786,9 @@ public class RestSpec extends BaseGSpec {
         sendRequestNoDataTable("GET", endPoint, null, null, null);
         if (commonspec.getResponse().getStatusCode() == 200) {
             commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.list[] | select (.name == \"" + policyName + "\").id' | sed s/\\\"//g");
+            if (commonspec.getCommandResult().trim().equals("")) {
+                commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.[] | select (.name == \"" + policyName + "\").id' | sed s/\\\"//g");
+            }
             sendRequestNoDataTable("GET", "/service/gosecmanagement/api/policy/" + commonspec.getCommandResult(), null, null, null);
 
             if (envVar != null) {
@@ -784,6 +823,9 @@ public class RestSpec extends BaseGSpec {
                 sendRequestNoDataTable("GET", newEndPoint, null, null, null);
                 if (commonspec.getResponse().getStatusCode() == 200) {
                     commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.list[] | select (.name == \"" + policyName + "\").id' | sed s/\\\"//g");
+                    if (commonspec.getCommandResult().trim().equals("")) {
+                        commonspec.runLocalCommand("echo '" + commonspec.getResponse().getResponse() + "' | jq '.[] | select (.name == \"" + policyName + "\").id' | sed s/\\\"//g");
+                    }
                     sendRequestNoDataTable("GET", "/service/gosecmanagement/api/policy?id=" + commonspec.getCommandResult(), null, null, null);
 
                     if (envVar != null) {
