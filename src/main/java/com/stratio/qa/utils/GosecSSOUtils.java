@@ -19,6 +19,7 @@ package com.stratio.qa.utils;
 import java.io.*;
 import java.net.URI;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.util.*;
 import java.security.cert.X509Certificate;
 import java.util.stream.Collectors;
@@ -41,6 +42,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContexts;
+import org.apache.http.ssl.TrustStrategy;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -94,11 +96,14 @@ public class GosecSSOUtils {
                 .setRedirectStrategy(new LaxRedirectStrategy())
                 .setDefaultRequestConfig(RequestConfig.custom()
                 .setCookieSpec(CookieSpecs.STANDARD).setCircularRedirectsAllowed(true).build());
+
         if (!this.verifyHost) {
             SSLConnectionSocketFactory scsf = new SSLConnectionSocketFactory(SSLContexts.custom().
-                    loadTrustMaterial(null, new TrustSelfSignedStrategy()).build(), NoopHostnameVerifier.INSTANCE);
+                    loadTrustMaterial((chain, authType) -> true)
+                    .build(), NoopHostnameVerifier.INSTANCE);
             clientBuilder.setSSLSocketFactory(scsf);
         }
+
         HttpClient client = clientBuilder.build();
         try {
             HttpResponse firstResponse = client.execute(httpGet, context);
