@@ -133,7 +133,9 @@ public class DcosSpec extends BaseGSpec {
                 tokenList = new String[]{"user", "dcos-acs-auth-cookie", "stratio-governance-auth"};
             }
             List<com.ning.http.client.cookie.Cookie> cookiesAtributes = addSsoToken(ssoCookies, tokenList);
-            ThreadProperty.set("dcosAuthCookie", ssoCookies.get("dcos-acs-auth-cookie"));
+            if (ssoCookies.get("dcos-acs-auth-cookie") != null) {
+                ThreadProperty.set("dcosAuthCookie", ssoCookies.get("dcos-acs-auth-cookie"));
+            }
             commonspec.setCookies(cookiesAtributes);
         }
     }
