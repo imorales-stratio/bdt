@@ -135,9 +135,9 @@ public class DcosSpec extends BaseGSpec {
             List<com.ning.http.client.cookie.Cookie> cookiesAtributes = addSsoToken(ssoCookies, tokenList);
 
             this.commonspec.getLogger().debug("Cookies to set:");
-            ssoCookies.forEach((cookie, value) -> {
-                this.commonspec.getLogger().debug("\t" + cookie + ":" + value);
-            });
+            for (String cookie:tokenList) {
+                this.commonspec.getLogger().debug("\t" + cookie + ":" + ssoCookies.get(cookie));
+            }
 
             if (ssoCookies.get("dcos-acs-auth-cookie") != null) {
                 ThreadProperty.set("dcosAuthCookie", ssoCookies.get("dcos-acs-auth-cookie"));
