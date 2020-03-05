@@ -1152,6 +1152,9 @@ public class DcosSpec extends BaseGSpec {
      * @throws Exception
      */
     private void getServicesInfoFromMarathonImpl() throws Exception {
+        if (System.getProperty("DCOS_PASSWORD") == null) {
+            throw new Exception("DCOS_PASSWORD should be defined when we use @dcos annotation");
+        }
         String marathonEndPoint = "/service/marathon/v2/apps";
         // Set sso token
         setGoSecSSOCookie(null, null, ThreadProperty.get("EOS_ACCESS_POINT"), ThreadProperty.get("DCOS_USER"), System.getProperty("DCOS_PASSWORD"), ThreadProperty.get("DCOS_TENANT"), null);

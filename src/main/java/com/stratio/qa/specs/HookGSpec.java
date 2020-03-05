@@ -260,7 +260,7 @@ public class HookGSpec extends BaseGSpec {
         }
     }
 
-    @Before(order = ORDER_10, value = "@rest")
+    @Before(order = ORDER_10, value = "@rest or @dcos")
     public void restClientSetup() throws Exception {
         commonspec.getLogger().debug("Starting a REST client");
 
@@ -268,7 +268,7 @@ public class HookGSpec extends BaseGSpec {
                 .build()));
     }
 
-    @After(order = ORDER_10, value = "@rest")
+    @After(order = ORDER_10, value = "@rest or @dcos")
     public void restClientTeardown() throws IOException {
         commonspec.getLogger().debug("Shutting down REST client");
         commonspec.getClient().close();
@@ -279,7 +279,7 @@ public class HookGSpec extends BaseGSpec {
         return tags.contains(customTAG);
     }
 
-    @Before(order = ORDER_10, value = "@dcos")
+    @Before(order = ORDER_20, value = "@dcos")
     public void dcosSetup() throws Exception {
         DcosSpec dcosSpec = new DcosSpec(commonspec);
         dcosSpec.obtainBasicInfoFromDescriptor(null);
