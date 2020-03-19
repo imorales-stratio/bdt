@@ -1181,13 +1181,17 @@ public class DcosSpec extends BaseGSpec {
         for (Object oApp : marathonApps) {
             if (oApp instanceof JSONObject) {
                 JSONObject jsonApp = (JSONObject) oApp;
-                if (jsonApp.get("container") != JSONObject.NULL && jsonApp.getJSONObject("container").get("docker") != JSONObject.NULL && jsonApp.getJSONObject("container").getJSONObject("docker").get("image") != JSONObject.NULL) {
+                try {
                     String dockerImage = jsonApp.getJSONObject("container").getJSONObject("docker").getString("image");
                     String dockerImageName = dockerImage.substring(dockerImage.lastIndexOf("/") + 1, dockerImage.lastIndexOf(":"));
                     String dockerImageVersion = dockerImage.substring(dockerImage.lastIndexOf(":") + 1);
                     if (appsToSaveVersion.contains(dockerImageName)) {
                         ThreadProperty.set(dockerImageName + "_version", dockerImageVersion);
                         commonspec.getLogger().debug(dockerImageName + " - " + dockerImageVersion);
+                    }
+                } catch (Exception e) {
+                    if (jsonApp.get("id") != JSONObject.NULL) {
+                        commonspec.getLogger().debug("Error obtaining container in service with id: " + jsonApp.getString("id"));
                     }
                 }
             }
