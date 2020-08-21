@@ -98,9 +98,15 @@ public class CCTSpec extends BaseGSpec {
     public void getHostIp(String internalIP, String taskName, String serviceId, String envVar) throws Exception {
         if (ThreadProperty.get("cct-marathon-services_id") == null) {
             DeployedTask task = getServiceTaskFromDeployApi(serviceId, taskName);
+            if (task == null) {
+                fail("Error obtaining IP");
+            }
             ThreadProperty.set(envVar, internalIP != null ? task.getCalicoIP() : task.getHost());
         } else {
             DeployedServiceTask task = getServiceTaskFromCctMarathonService(serviceId, taskName);
+            if (task == null) {
+                fail("Error obtaining IP");
+            }
             ThreadProperty.set(envVar, internalIP != null ? task.getSecuredHost() : task.getHost());
         }
     }
