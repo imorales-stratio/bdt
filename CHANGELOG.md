@@ -6,6 +6,7 @@ Only listing significant user-visible, not internal code cleanups and minor bug 
 
 * Bump log4j-core, log4j-slf4j-impl and log4j-1.2-api from 2.0 to 2.13.2
 * [GS-2354] Add feature to convert provided date into timestamp
+* [SPK-914] Complete new getHostIP method
 
 ## 0.18.0 (August 04, 2020)
 
