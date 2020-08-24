@@ -268,3 +268,4 @@ Feature: Example Quit after tag
     When fail
     Then something
   ```
+
