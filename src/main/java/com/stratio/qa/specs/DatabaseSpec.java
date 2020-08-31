@@ -26,6 +26,7 @@ import com.mongodb.util.JSON;
 import com.ning.http.client.Response;
 import com.stratio.qa.assertions.DBObjectsAssert;
 import com.stratio.qa.exceptions.DBException;
+import com.stratio.qa.utils.JDBCConnection;
 import com.stratio.qa.utils.ThreadProperty;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
@@ -667,6 +668,9 @@ public class DatabaseSpec extends BaseGSpec {
         Statement myStatement = null;
         int result = 0;
         Connection myConnection = this.commonspec.getConnection();
+        if (myConnection == null) {
+            throw new Exception("JDBC connection is not opened");
+        }
 
         try {
             myStatement = myConnection.createStatement();
@@ -684,10 +688,13 @@ public class DatabaseSpec extends BaseGSpec {
      */
     @When("^I execute query '(.+?)' through JDBC connection$")
     public void executeJdbcQuery(String query) throws Exception {
+        Connection myConnection = this.commonspec.getConnection();
+        if (myConnection == null) {
+            throw new Exception("JDBC connection is not opened");
+        }
         try {
             ThreadProperty.remove("querysize");
             getCommonSpec().setPreviousSqlResult(null);
-            Connection myConnection = this.commonspec.getConnection();
             Statement myStatement = myConnection.createStatement();
             myStatement.execute(query);
             myStatement.close();
@@ -710,6 +717,9 @@ public class DatabaseSpec extends BaseGSpec {
         List<String> sqlTableAux = new ArrayList<String>();
         Map<String, List<String>> sqlResultMap = new HashMap<>();
         Connection myConnection = this.commonspec.getConnection();
+        if (myConnection == null) {
+            throw new Exception("JDBC connection is not opened");
+        }
         java.sql.ResultSet rs = null;
         try {
             myStatement = myConnection.createStatement();
@@ -1014,6 +1024,9 @@ public class DatabaseSpec extends BaseGSpec {
     public void checkTable(String tableName) throws Exception {
         Statement myStatement = null;
         Connection myConnection = this.commonspec.getConnection();
+        if (myConnection == null) {
+            throw new Exception("JDBC connection is not opened");
+        }
 
         //query checks table existence, existence table name in system table  pg_tables
         String query = "SELECT * FROM pg_tables WHERE tablename = " + "\'" + tableName + "\'" + ";";
@@ -1046,6 +1059,9 @@ public class DatabaseSpec extends BaseGSpec {
     public void checkTableFalse(String tableName) throws Exception {
         Statement myStatement = null;
         Connection myConnection = this.commonspec.getConnection();
+        if (myConnection == null) {
+            throw new Exception("JDBC connection is not opened");
+        }
 
         String query = "SELECT * FROM pg_tables WHERE tablename = " + "\'" + tableName + "\'" + ";";
         try {
@@ -1088,6 +1104,9 @@ public class DatabaseSpec extends BaseGSpec {
 
 
         Connection myConnection = this.commonspec.getConnection();
+        if (myConnection == null) {
+            throw new Exception("JDBC connection is not opened");
+        }
         String query = "SELECT * FROM " + tableName + " order by " + "id" + ";";
         try {
             myStatement = myConnection.createStatement();
@@ -1124,7 +1143,7 @@ public class DatabaseSpec extends BaseGSpec {
      */
     @Then("^I close database connection$")
     public void closeDatabase() throws Exception {
-        this.commonspec.getConnection().close();
+        JDBCConnection.closeConnection();
     }
 
     /*
@@ -1164,6 +1183,9 @@ public class DatabaseSpec extends BaseGSpec {
     public void checkObjectExists(String objetType, String objectName) throws Exception {
         Statement myStatement = null;
         Connection myConnection = this.commonspec.getConnection();
+        if (myConnection == null) {
+            throw new Exception("JDBC connection is not opened");
+        }
 
         String query;
 
@@ -1239,6 +1261,9 @@ public class DatabaseSpec extends BaseGSpec {
     public void checkObjectNoExists(String objetType, String objectName) throws Exception {
         Statement myStatement = null;
         Connection myConnection = this.commonspec.getConnection();
+        if (myConnection == null) {
+            throw new Exception("JDBC connection is not opened");
+        }
 
         String query;
 

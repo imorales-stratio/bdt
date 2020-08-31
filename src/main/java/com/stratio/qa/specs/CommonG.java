@@ -134,8 +134,6 @@ public class CommonG {
 
     private Optional<SearchResult> previousLdapResults;
 
-    private Connection myConnection = null;
-
     private Map<String, List<String>> previousSqlResult = null;
 
     /**
@@ -2248,7 +2246,7 @@ public class CommonG {
             }
         }
         try {
-            myConnection = DriverManager.getConnection("jdbc:postgresql://" + host + ":" + port + "/" + database, props);
+            JDBCConnection.setConnection(DriverManager.getConnection("jdbc:postgresql://" + host + ":" + port + "/" + database, props));
         } catch (SQLException se) {
             // log the exception
             this.getLogger().error(se.getMessage());
@@ -2262,7 +2260,7 @@ public class CommonG {
      *
      */
     public Connection getConnection() {
-        return this.myConnection;
+        return JDBCConnection.getConnection();
     }
 
 
@@ -2485,7 +2483,7 @@ public class CommonG {
 
         try {
             Class.forName("com.stratio.jdbc.core.jdbc4.StratioDriver");
-            myConnection = DriverManager.getConnection(jdbcConnection);
+            JDBCConnection.setConnection(DriverManager.getConnection(jdbcConnection));
         } catch (SQLException se) {
             // log the exception
             this.getLogger().error(se.getMessage());
