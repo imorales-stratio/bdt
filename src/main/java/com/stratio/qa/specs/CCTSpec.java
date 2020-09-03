@@ -202,6 +202,8 @@ public class CCTSpec extends BaseGSpec {
      */
     @Given("^in less than '(\\d+)' seconds, checking each '(\\d+)' seconds, the '(stdout|stderr)' of service '(.+?)' with task name '(.+?)' contains '(.+?)'( in the last '(\\d+)' lines)?$")
     public void readLogsInLessEachFromService(Integer timeout, Integer wait, String logType, String service, String taskName, String logToCheck, Integer lastLinesToRead) throws Exception {
+        // Set REST connection
+        commonspec.setCCTConnection(null, null);
         if (lastLinesToRead == null) {
             lastLinesToRead = -1;
         }
@@ -213,7 +215,9 @@ public class CCTSpec extends BaseGSpec {
                 contained = true;
             } else {
                 commonspec.getLogger().info(logToCheck + " not found after " + x + " seconds");
-                Thread.sleep(wait * 1000);
+                if (x < timeout) {
+                    Thread.sleep(wait * 1000);
+                }
             }
         }
         if (!contained) {
@@ -234,7 +238,9 @@ public class CCTSpec extends BaseGSpec {
      * @throws Exception
      */
     @Given("^in less than '(\\d+)' seconds, checking each '(\\d+)' seconds, last '(\\d+)' lines of '(stdout|stderr)' log of service '(.+?)' with task name '(.+?)', modifying it with command '(.+?)' contains '(.+?)'$")
-    public void test(Integer timeout, Integer wait, Integer lastLinesToRead, String logType, String service, String taskName, String modifyingCommand, String logToCheck) throws Exception {
+    public void readLogsModifiedInLessEachFromService(Integer timeout, Integer wait, Integer lastLinesToRead, String logType, String service, String taskName, String modifyingCommand, String logToCheck) throws Exception {
+        // Set REST connection
+        commonspec.setCCTConnection(null, null);
         if (lastLinesToRead == null) {
             lastLinesToRead = -1;
         }
@@ -250,7 +256,9 @@ public class CCTSpec extends BaseGSpec {
                 contained = true;
             } else {
                 commonspec.getLogger().info(logToCheck + " not found after " + x + " seconds");
-                Thread.sleep(wait * 1000);
+                if (x < timeout) {
+                    Thread.sleep(wait * 1000);
+                }
             }
         }
         if (!contained) {
