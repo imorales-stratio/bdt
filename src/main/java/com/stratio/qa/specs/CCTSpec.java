@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -1832,7 +1833,7 @@ public class CCTSpec extends BaseGSpec {
      * @param organizationName
      * @return
      */
-    private String getCertificateUrlParams(String secret, String path, String cn, String name, String alt, String organizationName) {
+    private String getCertificateUrlParams(String secret, String path, String cn, String name, String alt, String organizationName) throws UnsupportedEncodingException {
         String pathAux = path != null ? path.replaceAll("/", "%2F") + secret : "%2Fuserland%2Fcertificates%2F" + secret;
         String cnAux = cn != null ? cn : secret;
         String nameAux = name != null ? name : secret;
@@ -1843,7 +1844,7 @@ public class CCTSpec extends BaseGSpec {
         if (organizationName != null) {
             urlParams = urlParams + "&organizationName=" + organizationName;
         }
-        return urlParams;
+        return URLEncoder.encode(urlParams, "UTF-8");
     }
 
     /**
@@ -1864,7 +1865,7 @@ public class CCTSpec extends BaseGSpec {
         if (realmAux == null) {
             throw new Exception("Realm is mandatory to generate keytab");
         }
-        return "?path=" + pathAux + "&principal=" + principalAux + "&name=" + nameAux + "&realm=" + realmAux;
+        return URLEncoder.encode("?path=" + pathAux + "&principal=" + principalAux + "&name=" + nameAux + "&realm=" + realmAux, "UTF-8");
     }
 
     /**
@@ -1876,12 +1877,12 @@ public class CCTSpec extends BaseGSpec {
      * @param password
      * @return
      */
-    private String getPasswordUrlParams(String secret, String path, String name, String user, String password) {
+    private String getPasswordUrlParams(String secret, String path, String name, String user, String password) throws UnsupportedEncodingException {
         String pathAux = path != null ? path.replaceAll("/", "%2F") + secret : "%2Fuserland%2Fpasswords%2F" + secret;
         String nameAux = name != null ? name : secret;
         String userAux = user != null ? user : secret;
         String passwordAux = password != null ? password : secret;
-        return "?path=" + pathAux + "&name=" + nameAux + "&password=" + passwordAux + "&user=" + userAux;
+        return URLEncoder.encode("?path=" + pathAux + "&name=" + nameAux + "&password=" + passwordAux + "&user=" + userAux, "UTF-8");
     }
 
     /**
