@@ -382,7 +382,7 @@ public class CCTSpec extends BaseGSpec {
                     endPoint = path + "&offset=0&length=" + i;
                 }
                 logs.insert(0, readLogsFromMesosEndpoint(path, endPoint));
-                lineCount = logs.toString().split("\n").length + lineCount;
+                lineCount = logs.toString().split("\n").length;
             }
         } else {
             for (int i = offSet; i >= 0; i = i - bytes) {
