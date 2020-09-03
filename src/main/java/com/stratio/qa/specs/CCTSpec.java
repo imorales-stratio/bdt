@@ -244,6 +244,7 @@ public class CCTSpec extends BaseGSpec {
         commonspec.setCCTConnection(null, null);
         String fileOutputName = taskType + "." + logType;
         String logOfTask = getLog(logType, lastLinesToRead, service, taskType);
+        Files.deleteIfExists(Paths.get(System.getProperty("user.dir") + "/target/test-classes/" + fileOutputName));
         Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/" + fileOutputName), logOfTask.getBytes());
     }
 
