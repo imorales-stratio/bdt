@@ -1839,10 +1839,10 @@ public class CCTSpec extends BaseGSpec {
         String nameAux = name != null ? name : secret;
         String urlParams = "?path=" + URLEncoder.encode(pathAux, "UTF-8") + "&cn=" + URLEncoder.encode(cnAux, "UTF-8") + "&name=" + URLEncoder.encode(nameAux, "UTF-8");
         if (alt != null) {
-            urlParams = urlParams + "&alt=" + alt;
+            urlParams = urlParams + "&alt=" + URLEncoder.encode(alt, "UTF-8");
         }
         if (organizationName != null) {
-            urlParams = urlParams + "&organizationName=" + organizationName;
+            urlParams = urlParams + "&organizationName=" + URLEncoder.encode(organizationName, "UTF-8");
         }
         return urlParams;
     }
