@@ -1833,7 +1833,7 @@ public class CCTSpec extends BaseGSpec {
      * @param organizationName
      * @return
      */
-    private String getCertificateUrlParams(String secret, String path, String cn, String name, String alt, String organizationName) throws UnsupportedEncodingException {
+    private String getCertificateUrlParams(String secret, String path, String cn, String name, String alt, String organizationName) {
         String pathAux = path != null ? path.replaceAll("/", "%2F") + secret : "%2Fuserland%2Fcertificates%2F" + secret;
         String cnAux = cn != null ? cn : secret;
         String nameAux = name != null ? name : secret;
