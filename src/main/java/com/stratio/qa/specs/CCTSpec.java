@@ -372,21 +372,22 @@ public class CCTSpec extends BaseGSpec {
         JSONObject offSetJson = new JSONObject(response.get().getResponseBody());
         int offSet = offSetJson.getInt("offset");
         StringBuilder logs = new StringBuilder();
+        int bytes = 50000;
         if (lastLines >= 0) {
             //Read 50000 bytes
             int lineCount = 0;
-            for (int i = offSet; (i >= 0) && (lineCount <= lastLines); i = i - 50000) {
-                String endPoint = path + "&offset=" + (i - 1000) + "&length=" + i;
-                if (i < 1000) {
+            for (int i = offSet; (i >= 0) && (lineCount <= lastLines); i = i - bytes) {
+                String endPoint = path + "&offset=" + (i - bytes) + "&length=" + i;
+                if (i < bytes) {
                     endPoint = path + "&offset=0&length=" + i;
                 }
                 logs.insert(0, readLogsFromMesosEndpoint(path, endPoint));
                 lineCount = logs.toString().split("\n").length + lineCount;
             }
         } else {
-            for (int i = offSet; i >= 0; i = i - 50000) {
-                String endPoint = path + "&offset=" + (i - 1000) + "&length=" + i;
-                if (i < 1000) {
+            for (int i = offSet; i >= 0; i = i - bytes) {
+                String endPoint = path + "&offset=" + (i - bytes) + "&length=" + i;
+                if (i < bytes) {
                     endPoint = path + "&offset=0&length=" + i;
                 }
                 logs.insert(0, readLogsFromMesosEndpoint(path, endPoint));
@@ -394,9 +395,9 @@ public class CCTSpec extends BaseGSpec {
         }
         String[] logsArray = logs.toString().split("\n");
         if (lastLines < 0) {
-            return String.join("\n", logsArray);
+            return String.join("\n", logsArray).replaceAll("BDTEOL", "\\\\n").replaceAll("BDTTAB", "\\\\t");
         }
-        return String.join("\n", Arrays.copyOfRange(logsArray, Math.max(logsArray.length - lastLines, 0), logsArray.length));
+        return String.join("\n", Arrays.copyOfRange(logsArray, Math.max(logsArray.length - lastLines, 0), logsArray.length)).replaceAll("BDTEOL", "\\\\n").replaceAll("BDTTAB", "\\\\t");
     }
 
     private String readLogsFromMesosEndpoint(String path, String endPoint) throws Exception {
@@ -407,7 +408,7 @@ public class CCTSpec extends BaseGSpec {
         }
         commonspec.setResponse("GET", response.get());
         JSONObject cctJsonResponse = new JSONObject(commonspec.getResponse().getResponse());
-        return cctJsonResponse.getString("data");
+        return cctJsonResponse.getString("data").replaceAll("\\\\n", "BDTEOL").replaceAll("\\\\t", "BDTTAB");
     }
 
     /**
