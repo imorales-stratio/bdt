@@ -1837,14 +1837,14 @@ public class CCTSpec extends BaseGSpec {
         String pathAux = path != null ? path.replaceAll("/", "%2F") + secret : "%2Fuserland%2Fcertificates%2F" + secret;
         String cnAux = cn != null ? cn : secret;
         String nameAux = name != null ? name : secret;
-        String urlParams = "?path=" + pathAux + "&cn=" + cnAux + "&name=" + nameAux;
+        String urlParams = "?path=" + URLEncoder.encode(pathAux, "UTF-8") + "&cn=" + URLEncoder.encode(cnAux, "UTF-8") + "&name=" + URLEncoder.encode(nameAux, "UTF-8");
         if (alt != null) {
             urlParams = urlParams + "&alt=" + alt;
         }
         if (organizationName != null) {
             urlParams = urlParams + "&organizationName=" + organizationName;
         }
-        return URLEncoder.encode(urlParams, "UTF-8");
+        return urlParams;
     }
 
     /**
@@ -1865,7 +1865,7 @@ public class CCTSpec extends BaseGSpec {
         if (realmAux == null) {
             throw new Exception("Realm is mandatory to generate keytab");
         }
-        return URLEncoder.encode("?path=" + pathAux + "&principal=" + principalAux + "&name=" + nameAux + "&realm=" + realmAux, "UTF-8");
+        return "?path=" + URLEncoder.encode(pathAux, "UTF-8") + "&principal=" + URLEncoder.encode(principalAux, "UTF-8") + "&name=" + URLEncoder.encode(nameAux, "UTF-8") + "&realm=" + URLEncoder.encode(realmAux, "UTF-8");
     }
 
     /**
@@ -1882,7 +1882,7 @@ public class CCTSpec extends BaseGSpec {
         String nameAux = name != null ? name : secret;
         String userAux = user != null ? user : secret;
         String passwordAux = password != null ? password : secret;
-        return URLEncoder.encode("?path=" + pathAux + "&name=" + nameAux + "&password=" + passwordAux + "&user=" + userAux, "UTF-8");
+        return "?path=" + URLEncoder.encode(pathAux, "UTF-8") + "&name=" + URLEncoder.encode(nameAux, "UTF-8") + "&password=" + URLEncoder.encode(passwordAux, "UTF-8") + "&user=" + URLEncoder.encode(userAux, "UTF-8");
     }
 
     /**
