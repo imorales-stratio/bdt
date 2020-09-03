@@ -1837,12 +1837,12 @@ public class CCTSpec extends BaseGSpec {
         String pathAux = path != null ? path.replaceAll("/", "%2F") + secret : "%2Fuserland%2Fcertificates%2F" + secret;
         String cnAux = cn != null ? cn : secret;
         String nameAux = name != null ? name : secret;
-        String urlParams = "?path=" + URLEncoder.encode(pathAux, "UTF-8") + "&cn=" + URLEncoder.encode(cnAux, "UTF-8") + "&name=" + URLEncoder.encode(nameAux, "UTF-8");
+        String urlParams = "?path=" + pathAux + "&cn=" + cnAux + "&name=" + nameAux;
         if (alt != null) {
-            urlParams = urlParams + "&alt=" + URLEncoder.encode(alt, "UTF-8");
+            urlParams = urlParams + "&alt=" + alt;
         }
         if (organizationName != null) {
-            urlParams = urlParams + "&organizationName=" + URLEncoder.encode(organizationName, "UTF-8");
+            urlParams = urlParams + "&organizationName=" + organizationName;
         }
         return urlParams;
     }
@@ -1865,7 +1865,7 @@ public class CCTSpec extends BaseGSpec {
         if (realmAux == null) {
             throw new Exception("Realm is mandatory to generate keytab");
         }
-        return "?path=" + URLEncoder.encode(pathAux, "UTF-8") + "&principal=" + URLEncoder.encode(principalAux, "UTF-8") + "&name=" + URLEncoder.encode(nameAux, "UTF-8") + "&realm=" + URLEncoder.encode(realmAux, "UTF-8");
+        return "?path=" + pathAux + "&principal=" + principalAux + "&name=" + nameAux + "&realm=" + realmAux;
     }
 
     /**
@@ -1882,7 +1882,7 @@ public class CCTSpec extends BaseGSpec {
         String nameAux = name != null ? name : secret;
         String userAux = user != null ? user : secret;
         String passwordAux = password != null ? password : secret;
-        return "?path=" + URLEncoder.encode(pathAux, "UTF-8") + "&name=" + URLEncoder.encode(nameAux, "UTF-8") + "&password=" + URLEncoder.encode(passwordAux, "UTF-8") + "&user=" + URLEncoder.encode(userAux, "UTF-8");
+        return "?path=" + pathAux + "&name=" + nameAux + "&password=" + URLEncoder.encode(passwordAux, "UTF-8") + "&user=" + URLEncoder.encode(userAux, "UTF-8");
     }
 
     /**
