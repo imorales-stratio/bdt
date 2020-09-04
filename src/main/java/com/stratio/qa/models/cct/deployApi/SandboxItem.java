@@ -24,7 +24,7 @@ public class SandboxItem {
 
     private String path;
 
-    private boolean isRotated;
+    private Boolean rotated;
 
     public String getName() {
         return name;
@@ -38,7 +38,7 @@ public class SandboxItem {
         return path;
     }
 
-    public boolean isRotated() {
-        return isRotated;
+    public Boolean isRotated() {
+        return rotated;
     }
 }

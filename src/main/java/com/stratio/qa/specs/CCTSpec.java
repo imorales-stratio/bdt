@@ -325,7 +325,6 @@ public class CCTSpec extends BaseGSpec {
         if (deployedTask != null) {
             SandboxItem sandboxItem = deployApiClient.getLogPaths(deployedTask.getId()).getList().stream()
                     .filter(log -> log.getAction().equals("read"))
-                    .filter(log -> log.getName().equals(logType))
                     .findFirst().orElse(null);
             if (sandboxItem != null && sandboxItem.getPath() != null) {
                 return sandboxItem.getPath() + logType;

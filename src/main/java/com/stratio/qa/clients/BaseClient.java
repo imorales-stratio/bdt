@@ -16,12 +16,11 @@
 
 package com.stratio.qa.clients;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Param;
 import com.ning.http.client.Response;
-import com.ning.http.client.cookie.Cookie;
 import com.stratio.qa.models.BaseResponse;
 import com.stratio.qa.models.BaseResponseList;
 import com.stratio.qa.specs.CommonG;
@@ -85,13 +84,14 @@ public class BaseClient {
     public <T> BaseResponseList<T> mapList(Response response, Class<T> type) throws Exception {
         List<T> r;
         BaseResponseList<T> rList = new BaseResponseList<>();
+        TypeFactory t = TypeFactory.defaultInstance();
 
         try {
-            r = mapper.readValue(response.getResponseBody(), new TypeReference<List<T>>() { });
+            r = mapper.readValue(response.getResponseBody(), t.constructCollectionType(ArrayList.class, type));
         } catch (Exception e) {
             log.warn(e.getMessage());
             log.warn("Error mapping response to " + type.getCanonicalName() + ". Setting empty...");
-            r = r = new ArrayList<>();
+            r =  new ArrayList<>();
         }
 
         rList.setList(r);
