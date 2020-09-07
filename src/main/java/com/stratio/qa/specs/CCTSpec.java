@@ -217,10 +217,14 @@ public class CCTSpec extends BaseGSpec {
         boolean contained = false;
         String logOfTask = "";
         for (int x = 0; (x <= timeout) && (!contained); x += wait) {
-            logOfTask = getLog(logType, lastLinesToRead, service, taskNameOrID, 0, null, nameOrId.equals("ID"));
-            if (logOfTask.contains(logToCheck)) {
-                contained = true;
-            } else {
+            try {
+                logOfTask = getLog(logType, lastLinesToRead, service, taskNameOrID, 0, null, nameOrId.equals("ID"));
+                if (logOfTask.contains(logToCheck)) {
+                    contained = true;
+                } else {
+                    throw new Exception(logToCheck + " not found after " + x + " seconds");
+                }
+            } catch (Exception e) {
                 commonspec.getLogger().info(logToCheck + " not found after " + x + " seconds");
                 if (x < timeout) {
                     Thread.sleep(wait * 1000);
@@ -254,14 +258,18 @@ public class CCTSpec extends BaseGSpec {
         boolean contained = false;
         String logOfTask = "";
         for (int x = 0; (x <= timeout) && (!contained); x += wait) {
-            logOfTask = getLog(logType, lastLinesToRead, service, taskNameOrID, 0, null, nameOrId.equals("ID"));
-            Files.deleteIfExists(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"));
-            Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"), logOfTask.getBytes());
-            commonspec.runLocalCommand("cat target/test-classes/log.txt | " + modifyingCommand);
-            commonspec.getLogger().debug("Log result modified =  " + commonspec.getCommandResult());
-            if (commonspec.getCommandResult().contains(logToCheck)) {
-                contained = true;
-            } else {
+            try {
+                logOfTask = getLog(logType, lastLinesToRead, service, taskNameOrID, 0, null, nameOrId.equals("ID"));
+                Files.deleteIfExists(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"));
+                Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"), logOfTask.getBytes());
+                commonspec.runLocalCommand("cat target/test-classes/log.txt | " + modifyingCommand);
+                commonspec.getLogger().debug("Log result modified =  " + commonspec.getCommandResult());
+                if (commonspec.getCommandResult().contains(logToCheck)) {
+                    contained = true;
+                } else {
+                    throw new Exception(logToCheck + " not found after " + x + " seconds");
+                }
+            } catch (Exception e) {
                 commonspec.getLogger().info(logToCheck + " not found after " + x + " seconds");
                 if (x < timeout) {
                     Thread.sleep(wait * 1000);

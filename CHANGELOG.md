@@ -13,6 +13,7 @@ Only listing significant user-visible, not internal code cleanups and minor bug 
 * [QATM-3473] New step to obtain service/container port through Marathon API
 * [QATM-3473] Fix cookies in BaseClient
 * [CON-328] Apply URL encode in URL params when we create secrets through CCT
+* [QATM-3474] Improvements in steps to obtain logs through CCT
 
 ## 0.18.0 (August 04, 2020)
 
