@@ -157,21 +157,21 @@ public class CCTSpec extends BaseGSpec {
      * Download last lines from logs of a service/framework
      * @param logType       : type of log enum value)
      * @param service       : service to obtain log from
-     * @param taskName      : task from service (OPTIONAL)
+     * @param taskNameOrID      : task from service
      * @throws Exception
      */
-    @Given("^I want to download '(stdout|stderr)' last '(\\d+)' lines of service '(.+?)' with task name '(.+?)'( in position '(\\d+)')?( in any state)?")
-    public void downLoadLogsFromService(String logType, Integer lastLinesToRead, String service, String taskName, Integer position, String taskState) throws Exception {
+    @Given("^I want to download '(stdout|stderr)' last '(\\d+)' lines of service '(.+?)' with task (name|ID) '(.+?)'( in position '(\\d+)')?( in any state)?")
+    public void downLoadLogsFromService(String logType, Integer lastLinesToRead, String service, String nameOrId, String taskNameOrID, Integer position, String taskState) throws Exception {
         // Set REST connection
         commonspec.setCCTConnection(null, null);
-        String fileOutputName = taskName + "." + logType;
+        String fileOutputName = taskNameOrID + "." + logType;
         if (position == null) {
             position = 0;
         }
         if (position > 0) {
             fileOutputName = fileOutputName + "." + position;
         }
-        String logOfTask = getLog(logType, lastLinesToRead, service, taskName, position, taskState);
+        String logOfTask = getLog(logType, lastLinesToRead, service, taskNameOrID, position, taskState, nameOrId.equals("ID"));
         Files.deleteIfExists(Paths.get(System.getProperty("user.dir") + "/target/test-classes/" + fileOutputName));
         Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/" + fileOutputName), logOfTask.getBytes());
     }
@@ -180,16 +180,16 @@ public class CCTSpec extends BaseGSpec {
      * Read last lines from logs of a service/framework
      * @param logType          : type of log enum value)
      * @param service          : service to obtain log from
-     * @param taskName         : task from service (OPTIONAL)
+     * @param taskNameOrID         : task from service
      * @param logToCheck       : expression to look for
      * @param lastLinesToRead  : number of lines to check from the end
      * @throws Exception
      */
-    @Given("^The '(stdout|stderr)' of service '(.+?)' with task name '(.+?)' contains '(.+?)' in the last '(\\d+)' lines$")
-    public void readLogsFromService(String logType, String service, String taskName, String logToCheck, Integer lastLinesToRead) throws Exception {
+    @Given("^The '(stdout|stderr)' of service '(.+?)' with task (name|ID) '(.+?)' contains '(.+?)' in the last '(\\d+)' lines$")
+    public void readLogsFromService(String logType, String service, String nameOrId, String taskNameOrID, String logToCheck, Integer lastLinesToRead) throws Exception {
         // Set REST connection
         commonspec.setCCTConnection(null, null);
-        String logOfTask = getLog(logType, lastLinesToRead, service, taskName, 0, null);
+        String logOfTask = getLog(logType, lastLinesToRead, service, taskNameOrID, 0, null, nameOrId.equals("ID"));
         if (!logOfTask.contains(logToCheck)) {
             Files.deleteIfExists(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"));
             Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"), logOfTask.getBytes());
@@ -203,12 +203,12 @@ public class CCTSpec extends BaseGSpec {
      * @param wait          : check interval
      * @param logType       : type of log enum value)
      * @param service       : service to obtain log from
-     * @param taskName      : task from service (OPTIONAL)
+     * @param taskNameOrID      : task from service
      * @param logToCheck    : expression to look for
      * @throws Exception
      */
-    @Given("^in less than '(\\d+)' seconds, checking each '(\\d+)' seconds, the '(stdout|stderr)' of service '(.+?)' with task name '(.+?)' contains '(.+?)'( in the last '(\\d+)' lines)?$")
-    public void readLogsInLessEachFromService(Integer timeout, Integer wait, String logType, String service, String taskName, String logToCheck, Integer lastLinesToRead) throws Exception {
+    @Given("^in less than '(\\d+)' seconds, checking each '(\\d+)' seconds, the '(stdout|stderr)' of service '(.+?)' with task (name|ID) '(.+?)' contains '(.+?)'( in the last '(\\d+)' lines)?$")
+    public void readLogsInLessEachFromService(Integer timeout, Integer wait, String logType, String service, String nameOrId, String taskNameOrID, String logToCheck, Integer lastLinesToRead) throws Exception {
         // Set REST connection
         commonspec.setCCTConnection(null, null);
         if (lastLinesToRead == null) {
@@ -217,7 +217,7 @@ public class CCTSpec extends BaseGSpec {
         boolean contained = false;
         String logOfTask = "";
         for (int x = 0; (x <= timeout) && (!contained); x += wait) {
-            logOfTask = getLog(logType, lastLinesToRead, service, taskName, 0, null);
+            logOfTask = getLog(logType, lastLinesToRead, service, taskNameOrID, 0, null, nameOrId.equals("ID"));
             if (logOfTask.contains(logToCheck)) {
                 contained = true;
             } else {
@@ -240,12 +240,12 @@ public class CCTSpec extends BaseGSpec {
      * @param wait          : check interval
      * @param logType       : type of log enum value)
      * @param service       : service to obtain log from
-     * @param taskName      : task from service (OPTIONAL)
+     * @param taskNameOrID      : task from service
      * @param logToCheck    : expression to look for
      * @throws Exception
      */
-    @Given("^in less than '(\\d+)' seconds, checking each '(\\d+)' seconds, last '(\\d+)' lines of '(stdout|stderr)' log of service '(.+?)' with task name '(.+?)', modifying it with command '(.+?)' contains '(.+?)'$")
-    public void readLogsModifiedInLessEachFromService(Integer timeout, Integer wait, Integer lastLinesToRead, String logType, String service, String taskName, String modifyingCommand, String logToCheck) throws Exception {
+    @Given("^in less than '(\\d+)' seconds, checking each '(\\d+)' seconds, last '(\\d+)' lines of '(stdout|stderr)' log of service '(.+?)' with task (name|ID) '(.+?)', modifying it with command '(.+?)' contains '(.+?)'$")
+    public void readLogsModifiedInLessEachFromService(Integer timeout, Integer wait, Integer lastLinesToRead, String logType, String service, String nameOrId, String taskNameOrID, String modifyingCommand, String logToCheck) throws Exception {
         // Set REST connection
         commonspec.setCCTConnection(null, null);
         if (lastLinesToRead == null) {
@@ -254,7 +254,7 @@ public class CCTSpec extends BaseGSpec {
         boolean contained = false;
         String logOfTask = "";
         for (int x = 0; (x <= timeout) && (!contained); x += wait) {
-            logOfTask = getLog(logType, lastLinesToRead, service, taskName, 0, null);
+            logOfTask = getLog(logType, lastLinesToRead, service, taskNameOrID, 0, null, nameOrId.equals("ID"));
             Files.deleteIfExists(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"));
             Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"), logOfTask.getBytes());
             commonspec.runLocalCommand("cat target/test-classes/log.txt | " + modifyingCommand);
@@ -282,25 +282,25 @@ public class CCTSpec extends BaseGSpec {
      * @param logType stdout / stderr
      * @param lastLinesToRead Last lines to read in log
      * @param service Service ID
-     * @param taskName Task name
+     * @param taskNameOrID Task name
      * @return Last 'lastLinesToRead' or null
      * @throws Exception
      */
-    private String getLog(String logType, Integer lastLinesToRead, String service, String taskName, Integer position, String taskState) throws Exception {
+    private String getLog(String logType, Integer lastLinesToRead, String service, String taskNameOrID, Integer position, String taskState, boolean isTaskId) throws Exception {
         String logPath;
         if (ThreadProperty.get("cct-marathon-services_id") == null) {
             // Deploy-api
-            if (taskState == null) {
-                logPath = getLogPathFromDeployApi(logType, service, taskName, "TASK_RUNNING", position);
+            if (taskState == null && !isTaskId) {
+                logPath = getLogPathFromDeployApi(logType, service, taskNameOrID, "TASK_RUNNING", position, false);
             } else {
-                logPath = getLogPathFromDeployApi(logType, service, taskName, null, position);
+                logPath = getLogPathFromDeployApi(logType, service, taskNameOrID, null, position, isTaskId);
             }
         } else {
             // Marathon-services
-            if (taskState == null) {
-                logPath = getLogPathFromMarathonServices(logType, service, taskName, TaskStatus.RUNNING, position);
+            if (taskState == null && !isTaskId) {
+                logPath = getLogPathFromMarathonServices(logType, service, taskNameOrID, TaskStatus.RUNNING, position, false);
             } else {
-                logPath = getLogPathFromMarathonServices(logType, service, taskName, null, position);
+                logPath = getLogPathFromMarathonServices(logType, service, taskNameOrID, null, position, isTaskId);
             }
         }
         commonspec.getLogger().debug("Log path: " + logPath);
@@ -312,14 +312,14 @@ public class CCTSpec extends BaseGSpec {
      *
      * @param logType stdout / stderr
      * @param service Service ID
-     * @param taskName Task name
+     * @param taskNameOrId Task name
      * @return Log path or null
      * @throws Exception
      */
-    private String getLogPathFromDeployApi(String logType, String service, String taskName, String expectedTaskStatus, Integer position) throws Exception {
+    private String getLogPathFromDeployApi(String logType, String service, String taskNameOrId, String expectedTaskStatus, Integer position, boolean isTaskId) throws Exception {
         DeployedTask deployedTask = deployApiClient.getDeployedApp(service).getTasks().stream()
                     .filter(expectedTaskStatus != null ? task -> task.getState().equals(expectedTaskStatus) : task -> true)
-                    .filter(task -> task.getName().matches(taskName))
+                    .filter(task -> isTaskId ? task.getId().matches(taskNameOrId) : task.getName().matches(taskNameOrId))
                     .sorted(Comparator.comparing(DeployedTask::getTimestamp).reversed())
                     .skip(position)
                     .findFirst().orElse(null);
@@ -330,10 +330,10 @@ public class CCTSpec extends BaseGSpec {
             if (sandboxItem != null && sandboxItem.getPath() != null) {
                 return sandboxItem.getPath() + logType;
             } else {
-                throw new Exception("Log path not found for task with name " + taskName + " and service " + service);
+                throw new Exception("Log path not found for task with name " + taskNameOrId + " and service " + service);
             }
         } else {
-            throw new Exception("No running task found with name " + taskName + " for service " + service);
+            throw new Exception("No running task found with name " + taskNameOrId + " for service " + service);
         }
     }
 
@@ -342,14 +342,14 @@ public class CCTSpec extends BaseGSpec {
      *
      * @param logType stdout / stderr
      * @param service Service ID
-     * @param taskName Task name
+     * @param taskNameOrId Task name
      * @return Log path or null
      * @throws Exception
      */
-    private String getLogPathFromMarathonServices(String logType, String service, String taskName, TaskStatus expectedTaskStatus, Integer position) throws Exception {
+    private String getLogPathFromMarathonServices(String logType, String service, String taskNameOrId, TaskStatus expectedTaskStatus, Integer position, boolean isTaskId) throws Exception {
         DeployedServiceTask deployedServiceTask = marathonServiceApiClient.getService(service, 1, 50).getTasks().stream()
                     .filter(expectedTaskStatus != null ? task -> task.getStatus().equals(expectedTaskStatus) : task -> true)
-                    .filter(task -> task.getName().matches(taskName))
+                    .filter(task -> isTaskId ? task.getId().matches(taskNameOrId) : task.getName().matches(taskNameOrId))
                     .sorted(Comparator.comparing(DeployedServiceTask::getTimestamp).reversed())
                     .skip(position)
                     .findFirst().orElse(null);
@@ -361,10 +361,10 @@ public class CCTSpec extends BaseGSpec {
             if (taskLog != null && taskLog.getPath() != null) {
                 return taskLog.getPath() + logType;
             } else {
-                throw new Exception("Log path not found for task with name " + taskName + " and service " + service);
+                throw new Exception("Log path not found for task with name " + taskNameOrId + " and service " + service);
             }
         } else {
-            throw new Exception("No running task found with name " + taskName + " for service " + service);
+            throw new Exception("No running task found with name " + taskNameOrId + " for service " + service);
         }
     }
 
