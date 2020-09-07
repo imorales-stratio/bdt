@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -1860,12 +1861,12 @@ public class CCTSpec extends BaseGSpec {
      * @param password
      * @return
      */
-    private String getPasswordUrlParams(String secret, String path, String name, String user, String password) {
+    private String getPasswordUrlParams(String secret, String path, String name, String user, String password) throws UnsupportedEncodingException {
         String pathAux = path != null ? path.replaceAll("/", "%2F") + secret : "%2Fuserland%2Fpasswords%2F" + secret;
         String nameAux = name != null ? name : secret;
         String userAux = user != null ? user : secret;
         String passwordAux = password != null ? password : secret;
-        return "?path=" + pathAux + "&name=" + nameAux + "&password=" + passwordAux + "&user=" + userAux;
+        return "?path=" + pathAux + "&name=" + nameAux + "&password=" + URLEncoder.encode(passwordAux, "UTF-8") + "&user=" + URLEncoder.encode(userAux, "UTF-8");
     }
 
     /**
