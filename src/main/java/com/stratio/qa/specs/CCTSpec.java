@@ -173,7 +173,6 @@ public class CCTSpec extends BaseGSpec {
             fileOutputName = fileOutputName + "." + position;
         }
         String logOfTask = getLog(logType, lastLinesToRead, service, taskNameOrID, position, taskState, nameOrId.equals("ID"));
-        Files.deleteIfExists(Paths.get(System.getProperty("user.dir") + "/target/test-classes/" + fileOutputName));
         Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/" + fileOutputName), logOfTask.getBytes());
     }
 
@@ -193,7 +192,6 @@ public class CCTSpec extends BaseGSpec {
         commonspec.setCCTConnection(null, null);
         String logOfTask = getLog(logType, lastLinesToRead, service, taskNameOrID, 0, null, nameOrId.equals("ID"));
         if (!logOfTask.contains(logToCheck)) {
-            Files.deleteIfExists(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"));
             Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"), logOfTask.getBytes());
             fail("The log '" + logToCheck + "' is not contained in the task logs. It is saved in target/test-classes/log.txt");
         }
@@ -226,15 +224,13 @@ public class CCTSpec extends BaseGSpec {
             }
             if (logOfTask.contains(logToCheck)) {
                 break;
-            } else {
-                commonspec.getLogger().info(logToCheck + " not found after " + x + " seconds");
-                if (x < timeout) {
-                    Thread.sleep(wait * 1000);
-                }
+            }
+            commonspec.getLogger().info(logToCheck + " not found after " + x + " seconds");
+            if (x < timeout) {
+                Thread.sleep(wait * 1000);
             }
         }
         if (!logOfTask.contains(logToCheck)) {
-            Files.deleteIfExists(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"));
             Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"), logOfTask.getBytes());
             fail("The log '" + logToCheck + "' is not contained in the task logs after " + timeout + " seconds. Last log downloaded is saved in target/test-classes/log.txt");
         }
@@ -255,9 +251,6 @@ public class CCTSpec extends BaseGSpec {
     public void readLogsModifiedInLessEachFromService(Integer timeout, Integer wait, Integer lastLinesToRead, String logType, String service, String nameOrId, String taskNameOrID, String modifyingCommand, String logToCheck) throws Exception {
         // Set REST connection
         commonspec.setCCTConnection(null, null);
-        if (lastLinesToRead == null) {
-            lastLinesToRead = -1;
-        }
         String logOfTask = "";
         for (int x = 0; x <= timeout; x += wait) {
             try {
@@ -265,21 +258,18 @@ public class CCTSpec extends BaseGSpec {
             } catch (Exception e) {
                 logOfTask = "";
             }
-            Files.deleteIfExists(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"));
             Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"), logOfTask.getBytes());
             commonspec.runLocalCommand("cat target/test-classes/log.txt | " + modifyingCommand);
             commonspec.getLogger().debug("Log result modified =  " + commonspec.getCommandResult());
             if (commonspec.getCommandResult().contains(logToCheck)) {
                 break;
-            } else {
-                commonspec.getLogger().info(logToCheck + " not found after " + x + " seconds");
-                if (x < timeout) {
-                    Thread.sleep(wait * 1000);
-                }
+            }
+            commonspec.getLogger().info(logToCheck + " not found after " + x + " seconds");
+            if (x < timeout) {
+                Thread.sleep(wait * 1000);
             }
         }
         if (!commonspec.getCommandResult().contains(logToCheck)) {
-            Files.deleteIfExists(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"));
             Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"), logOfTask.getBytes());
             commonspec.getLogger().error("Last log result modified =  " + commonspec.getCommandResult());
             fail("The log '" + logToCheck + "' is not contained in the task logs after " + timeout + " seconds. Last log downloaded is saved in target/test-classes/log.txt");
@@ -300,18 +290,12 @@ public class CCTSpec extends BaseGSpec {
         String logPath;
         if (ThreadProperty.get("cct-marathon-services_id") == null) {
             // Deploy-api
-            if (taskState == null && !isTaskId) {
-                logPath = getLogPathFromDeployApi(logType, service, taskNameOrID, "TASK_RUNNING", position, false);
-            } else {
-                logPath = getLogPathFromDeployApi(logType, service, taskNameOrID, null, position, isTaskId);
-            }
+            String expectedTaskStatus = taskState == null && !isTaskId ? "TASK_RUNNING" : null;
+            logPath = getLogPathFromDeployApi(logType, service, taskNameOrID, expectedTaskStatus, position, isTaskId);
         } else {
             // Marathon-services
-            if (taskState == null && !isTaskId) {
-                logPath = getLogPathFromMarathonServices(logType, service, taskNameOrID, TaskStatus.RUNNING, position, false);
-            } else {
-                logPath = getLogPathFromMarathonServices(logType, service, taskNameOrID, null, position, isTaskId);
-            }
+            TaskStatus expectedTaskStatus = taskState == null && !isTaskId ? TaskStatus.RUNNING : null;
+            logPath = getLogPathFromMarathonServices(logType, service, taskNameOrID, expectedTaskStatus, position, isTaskId);
         }
         commonspec.getLogger().debug("Log path: " + logPath);
         return readLogsFromMesos(logPath, lastLinesToRead);
