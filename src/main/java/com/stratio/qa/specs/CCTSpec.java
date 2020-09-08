@@ -37,6 +37,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.Assert;
 
 import java.io.*;
 import java.net.URLEncoder;
@@ -100,15 +101,11 @@ public class CCTSpec extends BaseGSpec {
         commonspec.setCCTConnection(null, null);
         if (ThreadProperty.get("cct-marathon-services_id") == null) {
             DeployedTask task = getServiceTaskFromDeployApi(serviceId, taskName);
-            if (task == null) {
-                fail("Error obtaining IP");
-            }
+            Assert.assertNotNull(task, "Error obtaining IP");
             ThreadProperty.set(envVar, internalIP != null ? task.getCalicoIP() : task.getHost());
         } else {
             DeployedServiceTask task = getServiceTaskFromCctMarathonService(serviceId, taskName);
-            if (task == null) {
-                fail("Error obtaining IP");
-            }
+            Assert.assertNotNull(task, "Error obtaining IP");
             ThreadProperty.set(envVar, internalIP != null ? task.getSecuredHost() : task.getHost());
         }
     }
@@ -165,19 +162,11 @@ public class CCTSpec extends BaseGSpec {
     public void downLoadLogsFromService(String logType, Integer lastLinesToRead, String service, String nameOrId, String taskNameOrID, Integer position, String taskState) throws Exception {
         // Set REST connection
         commonspec.setCCTConnection(null, null);
-        String fileOutputName = taskNameOrID + "." + logType;
-        if (position == null) {
-            position = 0;
-        }
-        if (position > 0) {
-            fileOutputName = fileOutputName + "." + position;
-        }
+        position = (position == null) ? 0 : position;
+        String fileOutputName = position == 0 ? taskNameOrID + "." + logType : taskNameOrID + "." + logType + "." + position;
         String logOfTask = getLog(logType, lastLinesToRead, service, taskNameOrID, position, taskState, nameOrId.equals("ID"));
-        if (logOfTask != null) {
-            Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/" + fileOutputName), logOfTask.getBytes());
-        } else {
-            fail("Error downloading log file");
-        }
+        Assert.assertNotNull(logOfTask, "Error downloading log file");
+        Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/" + fileOutputName), logOfTask.getBytes());
     }
 
     /**
@@ -195,9 +184,8 @@ public class CCTSpec extends BaseGSpec {
         // Set REST connection
         commonspec.setCCTConnection(null, null);
         String logOfTask = getLog(logType, lastLinesToRead, service, taskNameOrID, 0, null, nameOrId.equals("ID"));
-        if (logOfTask == null) {
-            fail("Error downloading log file");
-        } else if (!logOfTask.contains(logToCheck)) {
+        Assert.assertNotNull(logOfTask, "Error downloading log file");
+        if (!logOfTask.contains(logToCheck)) {
             Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"), logOfTask.getBytes());
             fail("The log '" + logToCheck + "' is not contained in the task logs. It is saved in target/test-classes/log.txt");
         }
@@ -218,9 +206,7 @@ public class CCTSpec extends BaseGSpec {
     public void readLogsInLessEachFromService(Integer timeout, Integer wait, String logType, String service, String nameOrId, String taskNameOrID, String logToCheck, Integer lastLinesToRead) throws Exception {
         // Set REST connection
         commonspec.setCCTConnection(null, null);
-        if (lastLinesToRead == null) {
-            lastLinesToRead = -1;
-        }
+        lastLinesToRead = lastLinesToRead == null ? -1 : lastLinesToRead;
         String logOfTask = null;
         for (int x = 0; x <= timeout; x += wait) {
             logOfTask = getLog(logType, lastLinesToRead, service, taskNameOrID, 0, null, nameOrId.equals("ID"));
@@ -232,9 +218,8 @@ public class CCTSpec extends BaseGSpec {
                 Thread.sleep(wait * 1000);
             }
         }
-        if (logOfTask == null) {
-            fail("Error downloading log file");
-        } else if (!logOfTask.contains(logToCheck)) {
+        Assert.assertNotNull(logOfTask, "Error downloading log file");
+        if (!logOfTask.contains(logToCheck)) {
             Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"), logOfTask.getBytes());
             fail("The log '" + logToCheck + "' is not contained in the task logs after " + timeout + " seconds. Last log downloaded is saved in target/test-classes/log.txt");
         }
@@ -271,9 +256,8 @@ public class CCTSpec extends BaseGSpec {
                 Thread.sleep(wait * 1000);
             }
         }
-        if (logOfTask == null) {
-            fail("Error downloading log file");
-        } else if (!commonspec.getCommandResult().contains(logToCheck)) {
+        Assert.assertNotNull(logOfTask, "Error downloading log file");
+        if (!commonspec.getCommandResult().contains(logToCheck)) {
             Files.write(Paths.get(System.getProperty("user.dir") + "/target/test-classes/log.txt"), logOfTask.getBytes());
             commonspec.getLogger().error("Last log result modified =  " + commonspec.getCommandResult());
             fail("The log '" + logToCheck + "' is not contained in the task logs after " + timeout + " seconds. Last log downloaded is saved in target/test-classes/log.txt");
@@ -440,10 +424,7 @@ public class CCTSpec extends BaseGSpec {
     public void tearDownService(String service, String tenant) throws Exception {
         // Set REST connection
         commonspec.setCCTConnection(null, null);
-
-        if (ThreadProperty.get("deploy_api_id") == null) {
-            fail("deploy_api_id variable is not set. Check deploy-api is installed and @dcos annotation is working properly.");
-        }
+        Assert.assertNotNull(ThreadProperty.get("deploy_api_id"), "deploy_api_id variable is not set. Check deploy-api is installed and @dcos annotation is working properly.");
         String endPoint = "/service/" + ThreadProperty.get("deploy_api_id") + "/deploy/teardown?frameworkName=" + service;
         Future<Response> response;
         response = commonspec.generateRequest("DELETE", false, null, null, endPoint, "", null, "");
@@ -487,9 +468,7 @@ public class CCTSpec extends BaseGSpec {
         // Set REST connection
         commonspec.setCCTConnection(null, null);
 
-        if (ThreadProperty.get("deploy_api_id") == null) {
-            fail("deploy_api_id variable is not set. Check deploy-api is installed and @dcos annotation is working properly.");
-        }
+        Assert.assertNotNull(ThreadProperty.get("deploy_api_id"), "deploy_api_id variable is not set. Check deploy-api is installed and @dcos annotation is working properly.");
         String endPoint = "/service/" + ThreadProperty.get("deploy_api_id") + "/deploy/scale?instances=" + instances + "&serviceName=" + service;
         Future<Response> response;
         response = commonspec.generateRequest("PUT", false, null, null, endPoint, "", null, "");
@@ -1324,9 +1303,7 @@ public class CCTSpec extends BaseGSpec {
         commonspec.setCCTConnection(null, null);
 
         // Obtain endpoint
-        if (ThreadProperty.get("deploy_api_id") == null) {
-            fail("deploy_api_id variable is not set. Check deploy-api is installed and @dcos annotation is working properly.");
-        }
+        Assert.assertNotNull(ThreadProperty.get("deploy_api_id"), "deploy_api_id variable is not set. Check deploy-api is installed and @dcos annotation is working properly.");
         String endPointUpload = "/service/" + ThreadProperty.get("deploy_api_id") + "/knowledge/upload";
 
         // Obtain URL
@@ -1455,9 +1432,7 @@ public class CCTSpec extends BaseGSpec {
      */
     @Given("^I update service '(.+?)'( in folder '(.+?)')? in tenant '(.+?)'( based on version '(.+?)')?( based on json '(.+?)')? with:$")
     public void updateCCTService(String serviceName, String folder, String tenant, String version, String jsonFile, DataTable modifications) throws Exception {
-        if (ThreadProperty.get("deploy_api_id") == null) {
-            fail("deploy_api_id variable is not set. Check deploy-api is installed and @dcos annotation is working properly.");
-        }
+        Assert.assertNotNull(ThreadProperty.get("deploy_api_id"), "deploy_api_id variable is not set. Check deploy-api is installed and @dcos annotation is working properly.");
 
         // obtain service name
         if (folder != null && folder.startsWith("/")) {
@@ -1679,9 +1654,7 @@ public class CCTSpec extends BaseGSpec {
      */
     @When("^I read value in path '(.+?)' from central configuration and save it in environment variable '(.+?)'$")
     public void readValueCentralConfig(String path, String envVar) throws Exception {
-        if (ThreadProperty.get("configuration_api_id") == null) {
-            fail("configuration_api_id variable is not set. Check configuration-api is installed and @dcos annotation is working properly.");
-        }
+        Assert.assertNotNull(ThreadProperty.get("configuration_api_id"), "configuration_api_id variable is not set. Check configuration-api is installed and @dcos annotation is working properly.");
 
         // Set REST connection
         commonspec.setCCTConnection(null, null);
