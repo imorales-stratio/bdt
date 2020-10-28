@@ -23,6 +23,7 @@ import com.stratio.qa.models.cct.deployApi.DeployedTask;
 import com.stratio.qa.models.cct.deployApi.SandboxItem;
 import com.stratio.qa.models.cct.marathonServiceApi.*;
 import com.stratio.qa.models.mesos.MesosTask;
+import com.stratio.qa.models.mesos.MesosTasksResponse;
 import com.stratio.qa.utils.CCTUtils;
 import com.stratio.qa.utils.ThreadProperty;
 import cucumber.api.java.en.Given;
@@ -318,11 +319,11 @@ public class CCTSpec extends BaseGSpec {
 
     private String generateMesosLogPath(String taskId, String logType) {
         try {
-            MesosTask mesosTask = this.commonspec.mesosApiClient.getMesosTask(taskId).getTasks().get(0);
-            String slaveId = mesosTask.getSlaveId();
-            String frameworkId = mesosTask.getFrameworkId();
+            MesosTask mesosTask = this.commonspec.mesosApiClient.getMesosTasks().getTasks().stream()
+                    .filter(task -> task.getTaskId().equals(taskId) || task.getFrameworkId().equals(taskId))
+                    .findFirst().orElse(null);
             String containerId = ((LinkedHashMap<String, String>) mesosTask.getStatuses().get(0).getContainerStatus().get("container_id")).get("value");
-            return "/agent/" + slaveId + "/files/read?path=/var/lib/mesos/slave/slaves/" + slaveId + "/frameworks/" + frameworkId + "/executors/" + taskId + "/runs/" + containerId + "/" + logType;
+            return "/agent/" + mesosTask.getSlaveId() + "/files/read?path=/var/lib/mesos/slave/slaves/" + mesosTask.getSlaveId() + "/frameworks/" + mesosTask.getFrameworkId() + "/executors/" + mesosTask.getTaskId() + "/runs/" + containerId + "/" + logType;
         } catch (Exception e) {
             commonspec.getLogger().warn("Error generating mesos log path: " + e.toString());
         }

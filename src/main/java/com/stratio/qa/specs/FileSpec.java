@@ -24,6 +24,8 @@ import org.assertj.core.api.Assertions;
 
 import java.io.*;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Generic File handling Specs.
@@ -228,4 +230,58 @@ public class FileSpec extends BaseGSpec {
 
         Assertions.assertThat(new File(absolutePathFile).isFile());
     }
+
+    @When("^I convert the yaml file '(.+?)' to json file '(.+?)'$")
+    public void convertYamlToJson(String fileToConvert, String fileName) throws Exception {
+
+        // Retrieve data
+        String retrievedData = commonspec.convertYamlToJson(fileToConvert);
+
+        // Create file (temporary) and set path to be accessible within test
+        File tempDirectory = new File(String.valueOf(System.getProperty("user.dir") + "/target/test-classes/"));
+        String absolutePathFile = tempDirectory.getAbsolutePath() + "/" + fileName;
+        commonspec.getLogger().debug("Creating file {} in 'target/test-classes'", absolutePathFile);
+        // Note that this Writer will delete the file if it exists
+        Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(absolutePathFile), "UTF-8"));
+        try {
+            out.write(retrievedData);
+        } catch (Exception e) {
+            commonspec.getLogger().error("Custom file {} hasn't been created:\n{}", absolutePathFile, e.toString());
+            throw new RuntimeException("Custom file {} hasn't been created");
+        } finally {
+            out.close();
+        }
+
+        Assertions.assertThat(new File(absolutePathFile).isFile());
+    }
+
+    @When("^I create zip file '(.+?)' from the following files:$")
+    public void createZip(String zipPath, DataTable table) throws Exception {
+
+        List<String> pathList = table.asList(String.class);
+
+        try {
+            byte[] buffer = new byte[1024];
+            FileOutputStream fos = new FileOutputStream(zipPath);
+            ZipOutputStream zos = new ZipOutputStream(fos);
+
+            for (int i = 0; i < pathList.size(); i++) {
+                File srcFile = new File(pathList.get(i));
+                FileInputStream fis = new FileInputStream(srcFile);
+
+                zos.putNextEntry(new ZipEntry(srcFile.getName()));
+                int length;
+                while ((length = fis.read(buffer)) > 0) {
+                    zos.write(buffer, 0, length);
+                }
+                zos.closeEntry();
+                fis.close();
+            }
+            zos.close();
+        } catch (IOException ioe) {
+            throw new Exception("Error creating zip file: " + ioe);
+        }
+    }
+
 }
+

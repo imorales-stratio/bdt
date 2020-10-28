@@ -10,6 +10,7 @@ Only listing significant user-visible, not internal code cleanups and minor bug 
 * [SPK-988] Fix runInAllNodes spec
 * [QATM-3515] Improve getHostIp method to obtain different IP's if service has multiple instances
 * [SAAS-2785] New step to get IP (internal and external) from Marathon instead of CCT
+* [SPK-1024] Changes in generateMesosLogPath method to read executor logs
 * [PQA-53] Fix modifyData method when first modification is a HEADER
 
 ## 0.19.1 (September 16, 2020)

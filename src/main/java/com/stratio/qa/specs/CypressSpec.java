@@ -39,8 +39,8 @@ public class CypressSpec extends BaseGSpec {
         this.commonspec = spec;
     }
 
-    @When("^I run on Cypress with testcase '(.+?)' with path '(.+?)'( and store video evidences with path '(.+?)')?( and with exit status '(\\d+)')?( and save the value in environment variable '(.+?)')?$")
-    public void executeCypresswithURLwithVideo(String testcase, String path, String videopath, Integer sExitStatus, String envVar, DataTable table) throws Exception {
+    @When("^I run Cypress testcase '(.+?)'( with config file '(.+?)')?( and store video evidences with path '(.+?)')?( and with exit status '(\\d+)')?( and save the value in environment variable '(.+?)')?$")
+    public void executeCypresswithURLwithVideo(String testcase, String configFile, String videopath, Integer sExitStatus, String envVar, DataTable table) throws Exception {
         Integer exitStatus = sExitStatus == null ? 0 : sExitStatus;
         Map<String, String> variables;
         String cypressVariables;
@@ -53,8 +53,9 @@ public class CypressSpec extends BaseGSpec {
             cypressVariables = "";
         }
 
+        String configVariable = configFile == null ? "" : " --config-file cypress/integration/" + configFile;
         String videoVariable = videopath == null ? "" : " --config trashAssetsBeforeRuns=false,videoUploadOnPasses=true,videosFolder=" + videopath;
-        String command = cypressVariables + " npx cypress run --spec cypress/integration" + path + "/" + testcase + ".spec.ts" + videoVariable;
+        String command = cypressVariables + " npx cypress run --spec cypress/integration/" + testcase + configVariable + videoVariable;
 
         this.commonspec.getLogger().info("Executing cypress: " + command);
 

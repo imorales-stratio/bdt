@@ -68,4 +68,10 @@ public class MesosApiClient extends BaseClient {
         Response response = get(url);
         return map(response, MesosTasksResponse.class);
     }
+
+    public MesosTasksResponse getMesosTasks() throws Exception {
+        String url = "https://".concat(ThreadProperty.get("EOS_ACCESS_POINT")).concat(":" + getPort()).concat("/mesos/tasks");
+        Response response = get(url);
+        return map(response, MesosTasksResponse.class);
+    }
 }
