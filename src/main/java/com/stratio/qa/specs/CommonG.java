@@ -1029,6 +1029,7 @@ public class CommonG {
                             composeKey = "$.content" + composeKey.substring(1);
                         }
                         this.headers.put(composeKey, newValue);
+                        jsonAsMap = JsonPath.parse(modifiedData).json();
                         break;
                     default:
                         throw new Exception("Modification type does not exist: " + operation);
