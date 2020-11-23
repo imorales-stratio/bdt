@@ -308,7 +308,7 @@ public class CCTSpec extends BaseGSpec {
             logPath = getLogPathFromMarathonServices(logType, service, taskAttr, expectedTaskStatus, position, taskAttrType);
         }
         if (taskAttrType.equals("ID") && logPath == null) {
-            logPath = generateMesosLogPath(taskAttrType, logType);
+            logPath = generateMesosLogPath(taskAttr, logType);
         }
         if (logPath == null) {
             return null;

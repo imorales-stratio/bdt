@@ -21,6 +21,7 @@ Only listing significant user-visible, not internal code cleanups and minor bug 
 * [ROCK-3086] Steps to modify, stop and start Marathon apps
 * [QATM-3547] Warning trace added if include tag is wrong
 * [SPK-1075] Logs improvements. Get log by host / secured host of task
+* [SPK-1075] Fix error generating mesos log path
 
 ## 0.19.1 (September 16, 2020)
 
