@@ -128,6 +128,49 @@ public class KubernetesClient {
         ThreadProperty.set("VAULT_HOST", "127.0.0.1");
         String serviceJson = commonspec.convertYamlStringToJson(getInstance().describeServiceYaml("vault", "keos-core"));
         ThreadProperty.set("VAULT_PORT", commonspec.getJSONPathString(serviceJson, "$.spec.ports[0].port", null).replaceAll("\\[", "").replaceAll("\\]", "").replaceAll("\"", ""));
+
+        // Get worker
+        for (Node node : k8sClient.nodes().withLabelSelector(getLabelSelector("node-role.kubernetes.io/worker=")).list().getItems()) {
+            // Check conditions ready
+            boolean conditionsReady = false;
+            for (NodeCondition nodeCondition : node.getStatus().getConditions()) {
+                if (nodeCondition.getType().equals("Ready") && nodeCondition.getStatus().equals("True")) {
+                    conditionsReady = true;
+                    break;
+                }
+            }
+            if (conditionsReady) {
+                for (NodeAddress nodeAddress : node.getStatus().getAddresses()) {
+                    if (nodeAddress.getType().equals("InternalIP")) {
+                        ThreadProperty.set("WORKER_IP", nodeAddress.getAddress());
+                    }
+                }
+            }
+            if (ThreadProperty.get("WORKER_IP") != null) {
+                break;
+            }
+        }
+
+        // Get ingress hosts
+        for (Ingress ingress : k8sClient.extensions().ingresses().inNamespace("keos-auth").list().getItems()) {
+            String varName = null;
+            switch (ingress.getMetadata().getName()) {
+                case "sis":
+                    varName = "KEOS_SIS_HOST";
+                    break;
+                case "oauth2-proxy":
+                    varName = "KEOS_OAUTH2_PROXY_HOST";
+                    break;
+                default:
+            }
+            if (varName != null) {
+                ThreadProperty.set(varName, ingress.getSpec().getRules().get(0).getHost());
+            }
+        }
+
+        // Save IP in /etc/hosts
+        commonspec.getETCHOSTSManagementUtils().acquireLock(null, null, ThreadProperty.get("WORKER_IP"), ThreadProperty.get("KEOS_SIS_HOST"));
+        commonspec.getETCHOSTSManagementUtils().acquireLock(null, null, ThreadProperty.get("WORKER_IP"), ThreadProperty.get("KEOS_OAUTH2_PROXY_HOST"));
     }
 
     /**
@@ -523,7 +566,10 @@ public class KubernetesClient {
         Map<String, String> expressions = new HashMap<>();
         for (String sel : arraySelector) {
             String labelKey = sel.split("=")[0];
-            String labelValue = sel.split("=")[1];
+            String labelValue = "";
+            if (sel.split("=").length > 1) {
+                labelValue = sel.split("=")[1];
+            }
             expressions.put(labelKey, labelValue);
         }
         labelSelector.setMatchLabels(expressions);

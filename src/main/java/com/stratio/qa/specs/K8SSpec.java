@@ -28,10 +28,11 @@ import io.cucumber.datatable.DataTable;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import org.json.JSONObject;
 import org.testng.Assert;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -533,5 +534,36 @@ public class K8SSpec extends BaseGSpec {
             this.commonspec.getLogger().debug("\t" + cookie + ":" + ssoCookies.get(cookie));
         }
         commonspec.setCookies(cookiesAtributes);
+    }
+
+    /**
+     * Convert descriptor to k8s-json-schema
+     *
+     * @param descriptor : descriptor to be converted to k8s-json-schema
+     * @param envVar     : environment variable where to store json
+     * @throws Exception exception     *
+     */
+    @Given("^I convert descriptor '(.+?)' to k8s-json-schema( and save it in variable '(.+?)')?( and save it in file '(.+?)')?")
+    public void convertDescriptorToK8sJsonSchema(String descriptor, String envVar, String fileName) throws Exception {
+        JSONObject jsonSchema = new JSONObject();
+        jsonSchema.put("descriptor", new JSONObject(descriptor));
+        jsonSchema.put("deployment", commonspec.parseJSONSchema(new JSONObject(descriptor)));
+        if (envVar != null) {
+            ThreadProperty.set(envVar, jsonSchema.toString());
+        }
+        if (fileName != null) {
+            File tempDirectory = new File(System.getProperty("user.dir") + "/target/test-classes/");
+            String absolutePathFile = tempDirectory.getAbsolutePath() + "/" + fileName;
+            commonspec.getLogger().debug("Creating file {} in 'target/test-classes'", absolutePathFile);
+            // Note that this Writer will delete the file if it exists
+            Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(absolutePathFile), StandardCharsets.UTF_8));
+            try {
+                out.write(jsonSchema.toString());
+            } catch (Exception e) {
+                commonspec.getLogger().error("Custom file {} hasn't been created:\n{}", absolutePathFile, e.toString());
+            } finally {
+                out.close();
+            }
+        }
     }
 }
