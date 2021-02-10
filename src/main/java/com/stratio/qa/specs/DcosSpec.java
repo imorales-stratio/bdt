@@ -150,7 +150,7 @@ public class DcosSpec extends BaseGSpec {
             if (gov != null) {
                 tokenList = new String[]{"user", "dcos-acs-auth-cookie", "stratio-governance-auth"};
             }
-            List<com.ning.http.client.cookie.Cookie> cookiesAtributes = addSsoToken(ssoCookies, tokenList);
+            List<com.ning.http.client.cookie.Cookie> cookiesAtributes = this.commonspec.addSsoToken(ssoCookies, tokenList);
 
             this.commonspec.getLogger().debug("Cookies to set:");
             for (String cookie:tokenList) {
@@ -186,30 +186,13 @@ public class DcosSpec extends BaseGSpec {
         ssoUtils.setVerifyHost(hostVerifier == null);
         HashMap<String, String> ssoCookies = ssoUtils.ssoTokenGenerator();
         String[] tokenList = new String[]{discoveryCookie};
-        List<com.ning.http.client.cookie.Cookie> cookiesAtributes = addSsoToken(ssoCookies, tokenList);
+        List<com.ning.http.client.cookie.Cookie> cookiesAtributes = this.commonspec.addSsoToken(ssoCookies, tokenList);
         this.commonspec.getLogger().debug("Discovery Cookie to set:");
         for (String cookie : tokenList) {
             this.commonspec.getLogger().debug("\t" + cookie + ":" + ssoCookies.get(cookie));
         }
         ThreadProperty.set(discoveryCookie, ssoCookies.get(discoveryCookie));
         commonspec.setCookies(cookiesAtributes);
-    }
-
-    /**
-     * Obtain cookies from previous request
-     * @param ssoCookies
-     * @param tokenList
-     * @return
-     */
-    public List<com.ning.http.client.cookie.Cookie> addSsoToken(HashMap<String, String> ssoCookies, String[] tokenList) {
-        List<com.ning.http.client.cookie.Cookie> cookiesAttributes = new ArrayList<>();
-
-        for (String tokenKey : tokenList) {
-            cookiesAttributes.add(new com.ning.http.client.cookie.Cookie(tokenKey, ssoCookies.get(tokenKey),
-                    false, null,
-                    null, 999999, false, false));
-        }
-        return cookiesAttributes;
     }
 
     /**

@@ -285,7 +285,7 @@ public class HookGSpec extends BaseGSpec {
         }
     }
 
-    @Before(order = ORDER_10, value = "@rest or @dcos")
+    @Before(order = ORDER_10, value = "@rest or @dcos or @keos")
     public void restClientSetup() throws Exception {
         commonspec.getLogger().debug("Starting a REST client");
 
@@ -299,7 +299,7 @@ public class HookGSpec extends BaseGSpec {
         commonspec.initKubernetesClient();
     }
 
-    @After(order = ORDER_10, value = "@rest or @dcos")
+    @After(order = ORDER_10, value = "@rest or @dcos or @keos")
     public void restClientTeardown() throws IOException {
         commonspec.getLogger().debug("Shutting down REST client");
         commonspec.getClient().close();

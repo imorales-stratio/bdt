@@ -2637,4 +2637,21 @@ public class CommonG {
     public void initKubernetesClient() {
         kubernetesClient = KubernetesClient.getInstance();
     }
+
+    /**
+     * Obtain cookies from previous request
+     *
+     * @param ssoCookies
+     * @param tokenList
+     * @return
+     */
+    public List<com.ning.http.client.cookie.Cookie> addSsoToken(HashMap<String, String> ssoCookies, String[] tokenList) {
+        List<com.ning.http.client.cookie.Cookie> cookiesAttributes = new ArrayList<>();
+        for (String tokenKey : tokenList) {
+            cookiesAttributes.add(new com.ning.http.client.cookie.Cookie(tokenKey, ssoCookies.get(tokenKey),
+                    false, null,
+                    null, 999999, false, false));
+        }
+        return cookiesAttributes;
+    }
 }
