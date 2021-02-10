@@ -169,7 +169,7 @@ public class K8SSpec extends BaseGSpec {
             case "rolebinding":
                 describeResponse = commonspec.kubernetesClient.describeRoleBinding(name, namespace);
                 break;
-            case "ingres":
+            case "ingress":
                 describeResponse = commonspec.kubernetesClient.describeIngress(name, namespace);
                 break;
             default:

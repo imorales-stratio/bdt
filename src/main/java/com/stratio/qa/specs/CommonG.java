@@ -2320,21 +2320,26 @@ public class CommonG {
     public JSONObject parseJSONSchema(JSONObject schema) throws Exception {
         JSONObject json = new JSONObject();
         String name = "";
-        JSONObject properties = schema;
+        JSONObject jsonSchema = schema;
+
+        // Check if key 'parameters' exists
+        if (jsonSchema.has("parameters")) {
+            jsonSchema = jsonSchema.getJSONObject("parameters");
+        }
 
         // Check if key 'properties' exists
-        if (schema.has("properties")) {
+        if (jsonSchema.has("properties")) {
             // Obtain properties
-            properties = schema.getJSONObject("properties");
+            jsonSchema = jsonSchema.getJSONObject("properties");
         }
 
         // Obtain all keys and iterate through them
-        Iterator<?> keys = properties.keys();
+        Iterator<?> keys = jsonSchema.keys();
         while (keys.hasNext()) {
             // Obtain key
             String key = keys.next().toString();
             // Obtain value of key
-            JSONObject element = properties.getJSONObject(key);
+            JSONObject element = jsonSchema.getJSONObject(key);
             // Check if value contain properties
             // If it DOESN'T CONTAIN properties
             if (!element.has("properties")) {
