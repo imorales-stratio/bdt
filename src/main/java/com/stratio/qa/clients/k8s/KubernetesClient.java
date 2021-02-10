@@ -22,8 +22,8 @@ import com.stratio.qa.specs.CommonG;
 import com.stratio.qa.utils.ThreadProperty;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionList;
 import io.fabric8.kubernetes.api.model.apps.*;
+import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.api.model.rbac.*;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -1048,6 +1048,16 @@ public class KubernetesClient {
     }
 
     /**
+     * kubectl describe rolebinding xxx -n namespace
+     *
+     * @param roleName rolebinding name
+     * @param namespace Namespace
+     *
+     * @return String with rolebinding
+     */
+    public String describeRoleBinding(String roleName, String namespace) throws JsonProcessingException {
+        return SerializationUtils.dumpAsYaml(getRoleBinding(roleName, namespace));
+    }
 
      /**
      * Get customresourcedefinition list
@@ -1082,13 +1092,48 @@ public class KubernetesClient {
      * @param namespace Namespace
      * @return service list
      */
-
     public String getServiceList(String namespace) {
         StringBuilder result = new StringBuilder();
         for (Service service : k8sClient.services().inNamespace(namespace).list().getItems()) {
             result.append(service.getMetadata().getName()).append("\n");
         }
         return result.length() > 0 ? result.substring(0, result.length() - 1) : result.toString();
+    }
+
+    /**
+     * Get ingress
+     *
+     * @param name name
+     * @param namespace Namespace
+     * @return Ingress
+     */
+    public Ingress getIngress(String name, String namespace) {
+        return k8sClient.extensions().ingresses().inNamespace(namespace).withName(name).get();
+    }
+
+    /**
+     * kubectl get ingress -n namespace
+     *
+     * @param namespace Namespace
+     * @return ingress list
+     */
+    public String getIngressList(String namespace) {
+        StringBuilder result = new StringBuilder();
+        for (Ingress ingress : k8sClient.extensions().ingresses().inNamespace(namespace).list().getItems()) {
+            result.append(ingress.getMetadata().getName()).append("\n");
+        }
+        return result.length() > 0 ? result.substring(0, result.length() - 1) : result.toString();
+    }
+
+    /**
+     * kubectl describe ingress -n namespace
+     *
+     * @param ingressName Ingress name
+     * @param namespace Namespace
+     * @return String with ingress information
+     */
+    public String describeIngress(String ingressName, String namespace) throws JsonProcessingException {
+        return SerializationUtils.dumpAsYaml(getIngress(ingressName, namespace));
     }
 
      /**
@@ -1121,18 +1166,6 @@ public class KubernetesClient {
             localPortForward.close();
         }
         localPortForward = null;
-    }
-
-    /**
-     * kubectl describe rolebinding xxx -n namespace
-     *
-     * @param roleName rolebinding name
-     * @param namespace Namespace
-     *
-     * @return String with rolebinding
-     */
-    public String describeRoleBinding(String roleName, String namespace) throws JsonProcessingException {
-        return SerializationUtils.dumpAsYaml(getRoleBinding(roleName, namespace));
     }
 
     private static class MyPodExecListener implements ExecListener {
