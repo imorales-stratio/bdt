@@ -2544,15 +2544,21 @@ public class CommonG {
         }
     }
 
-
     public void setCCTConnection(String tenantOrig, String loginInfo) throws Exception {
+        if (ThreadProperty.get("EOS_ACCESS_POINT") == null && ThreadProperty.get("KEOS_OAUTH2_PROXY_HOST") == null) {
+            fail("KEOS_OAUTH2_PROXY_HOST and EOS_ACCESS_POINT variable are not set. Check @keos / @dcos annotation is working properly.");
+        }
+        if (ThreadProperty.get("EOS_ACCESS_POINT") != null) {
+            setCCTConnectionDCOS(tenantOrig, loginInfo);
+        } else { // KEOS_OAUTH2_PROXY_HOST != null
+            setCCTConnectionKeos(tenantOrig, loginInfo);
+        }
+    }
+
+    private void setCCTConnectionDCOS(String tenantOrig, String loginInfo) throws Exception {
         String tenant = tenantOrig;
         String user;
         String password;
-
-        if (ThreadProperty.get("EOS_ACCESS_POINT") == null) {
-            fail("EOS_ACCESS_POINT variable is not set. Check @dcos annotation is working properly.");
-        }
 
         if (tenantOrig == null) {
             tenant = ThreadProperty.get("DCOS_TENANT");
@@ -2573,6 +2579,33 @@ public class CommonG {
         // Securely send requests
         this.setRestProtocol("https://");
         this.setRestHost(ThreadProperty.get("EOS_ACCESS_POINT"));
+        this.setRestPort(":443");
+    }
+
+    private void setCCTConnectionKeos(String tenantOrig, String loginInfo) throws Exception {
+        String tenant = tenantOrig;
+        String user;
+        String password;
+
+        if (tenantOrig == null) {
+            tenant = ThreadProperty.get("KEOS_TENANT");
+        }
+
+        if (loginInfo == null) {
+            user = ThreadProperty.get("KEOS_USER");
+            password = ThreadProperty.get("KEOS_PASSWORD") != null ? ThreadProperty.get("KEOS_PASSWORD") : System.getProperty("KEOS_PASSWORD");
+        } else {
+            user = loginInfo.split(":")[0];
+            password = loginInfo.split(":")[1];
+        }
+
+        // Set sso token
+        KeosSpec keosSpec = new KeosSpec(this);
+        keosSpec.setGoSecSSOCookieKeos(ThreadProperty.get("KEOS_OAUTH2_PROXY_HOST"), user, password, tenant);
+
+        // Securely send requests
+        this.setRestProtocol("https://");
+        this.setRestHost(ThreadProperty.get("KEOS_OAUTH2_PROXY_HOST"));
         this.setRestPort(":443");
     }
 

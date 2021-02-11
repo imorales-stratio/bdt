@@ -122,13 +122,31 @@ public class KubernetesClient {
         getInstance().connect(ThreadProperty.get("CLUSTER_KUBE_CONFIG_PATH"));
 
         // Vault values
+        getK8sVaultConfig(commonspec);
+
+        // Get worker and set ingress hosts variables
+        getK8sWorkerAndIngressHosts(commonspec);
+
+        // Save IP in /etc/hosts
+        commonspec.getETCHOSTSManagementUtils().acquireLock(null, null, ThreadProperty.get("WORKER_IP"), ThreadProperty.get("KEOS_SIS_HOST"));
+        commonspec.getETCHOSTSManagementUtils().acquireLock(null, null, ThreadProperty.get("WORKER_IP"), ThreadProperty.get("KEOS_OAUTH2_PROXY_HOST"));
+
+        // Default values for some variables TODO: Review how to do it
+        ThreadProperty.set("KEOS_TENANT", System.getProperty("KEOS_TENANT") != null ? System.getProperty("KEOS_TENANT") : "NONE");
+        ThreadProperty.set("KEOS_USER", System.getProperty("KEOS_USER") != null ? System.getProperty("KEOS_USER") : "admin");
+        ThreadProperty.set("KEOS_PASSWORD", System.getProperty("KEOS_PASSWORD") != null ? System.getProperty("KEOS_PASSWORD") : "1234");
+    }
+
+    private void getK8sVaultConfig(CommonG commonspec) throws Exception {
         String vaultRoot = new JSONObject(commonspec.convertYamlStringToJson(getInstance().describeSecret("vault-unseal-keys", "keos-core"))).getJSONObject("data").getString("vault-root");
         commonspec.runLocalCommand("echo " + vaultRoot + " | base64 -d");
         commonspec.runCommandLoggerAndEnvVar(0, "VAULT_TOKEN", Boolean.TRUE);
         ThreadProperty.set("VAULT_HOST", "127.0.0.1");
         String serviceJson = commonspec.convertYamlStringToJson(getInstance().describeServiceYaml("vault", "keos-core"));
         ThreadProperty.set("VAULT_PORT", commonspec.getJSONPathString(serviceJson, "$.spec.ports[0].port", null).replaceAll("\\[", "").replaceAll("\\]", "").replaceAll("\"", ""));
+    }
 
+    private void getK8sWorkerAndIngressHosts(CommonG commonspec) {
         // Get worker
         for (Node node : k8sClient.nodes().withLabelSelector(getLabelSelector("node-role.kubernetes.io/worker=")).list().getItems()) {
             // Check conditions ready
@@ -167,10 +185,6 @@ public class KubernetesClient {
                 ThreadProperty.set(varName, ingress.getSpec().getRules().get(0).getHost());
             }
         }
-
-        // Save IP in /etc/hosts
-        commonspec.getETCHOSTSManagementUtils().acquireLock(null, null, ThreadProperty.get("WORKER_IP"), ThreadProperty.get("KEOS_SIS_HOST"));
-        commonspec.getETCHOSTSManagementUtils().acquireLock(null, null, ThreadProperty.get("WORKER_IP"), ThreadProperty.get("KEOS_OAUTH2_PROXY_HOST"));
     }
 
     /**
