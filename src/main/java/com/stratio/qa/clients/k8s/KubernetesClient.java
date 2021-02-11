@@ -125,15 +125,16 @@ public class KubernetesClient {
         getK8sVaultConfig(commonspec);
 
         // Get worker and set ingress hosts variables
-        getK8sWorkerAndIngressHosts(commonspec);
+        getK8sWorkerAndIngressHosts();
 
         // Save IP in /etc/hosts
         commonspec.getETCHOSTSManagementUtils().acquireLock(null, null, ThreadProperty.get("WORKER_IP"), ThreadProperty.get("KEOS_SIS_HOST"));
         commonspec.getETCHOSTSManagementUtils().acquireLock(null, null, ThreadProperty.get("WORKER_IP"), ThreadProperty.get("KEOS_OAUTH2_PROXY_HOST"));
 
-        // Default values for some variables TODO: Review how to do it
-        ThreadProperty.set("KEOS_TENANT", System.getProperty("KEOS_TENANT") != null ? System.getProperty("KEOS_TENANT") : "NONE");
-        ThreadProperty.set("KEOS_USER", System.getProperty("KEOS_USER") != null ? System.getProperty("KEOS_USER") : "admin");
+        // Set variables from command-center-config configmap
+        getK8sCCTConfig(commonspec);
+
+        // Default values for some variables
         ThreadProperty.set("KEOS_PASSWORD", System.getProperty("KEOS_PASSWORD") != null ? System.getProperty("KEOS_PASSWORD") : "1234");
     }
 
@@ -146,7 +147,7 @@ public class KubernetesClient {
         ThreadProperty.set("VAULT_PORT", commonspec.getJSONPathString(serviceJson, "$.spec.ports[0].port", null).replaceAll("\\[", "").replaceAll("\\]", "").replaceAll("\"", ""));
     }
 
-    private void getK8sWorkerAndIngressHosts(CommonG commonspec) {
+    private void getK8sWorkerAndIngressHosts() {
         // Get worker
         for (Node node : k8sClient.nodes().withLabelSelector(getLabelSelector("node-role.kubernetes.io/worker=")).list().getItems()) {
             // Check conditions ready
@@ -185,6 +186,48 @@ public class KubernetesClient {
                 ThreadProperty.set(varName, ingress.getSpec().getRules().get(0).getHost());
             }
         }
+    }
+
+    private void getK8sCCTConfig(CommonG commonspec) {
+        try {
+            String centralConfigJson = getConfigMap("command-center-config", "keos-cct").getData().get("central-config.json");
+
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.eos.dockerRegistry", "DOCKER_REGISTRY", null);
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.eos.proxyAccessPointURL", "KEOS_ACCESS_POINT", null);
+
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.globals.sso.ssoTenantDefault", "KEOS_TENANT", null);
+
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.globals.kerberos.realm", "KEOS_REALM", null);
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.globals.kerberos.kdcHost", "KDC_HOST", null);
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.globals.kerberos.kdcPort", "KDC_PORT", null);
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.globals.kerberos.kadminHost", "KADMIN_HOST", null);
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.globals.kerberos.kadminPort", "KADMIN_PORT", null);
+
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.globals.ldap.adminUserUuid", "KEOS_USER", null);
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.globals.ldap.url", "LDAP_URL", null);
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.globals.ldap.port", "LDAP_PORT", null);
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.globals.ldap.userDn", "LDAP_USER_DN", null);
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.globals.ldap.groupDN", "LDAP_GROUP_DN", null);
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.globals.ldap.ldapBase", "LDAP_BASE", null);
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.globals.ldap.adminrouterAuthorizedGroup", "LDAP_ADMIN_GROUP", null);
+
+            obtainJSONInfoAndExpose(commonspec, centralConfigJson, "$.globals.vault.vaultHost", "KEOS_VAULT_HOST_INTERNAL", null);
+        } catch (Exception e) {
+            commonspec.getLogger().error("Error reading command center config", e);
+        }
+    }
+
+    /**
+     * Obtain info from json and expose in thread variable
+     *
+     * @param json          : json to look for info in
+     * @param jqExpression  : jq expression to obtain specific info from json
+     * @param envVar        : thread variable where to expose value
+     * @param position      : position in value obtained with jq
+     */
+    public void obtainJSONInfoAndExpose(CommonG commonspec, String json, String jqExpression, String envVar, String position) {
+        String value = commonspec.getJSONPathString(json, jqExpression, position).replaceAll("\\[", "").replaceAll("\\]", "").replaceAll("\"", "");
+        ThreadProperty.set(envVar, value);
     }
 
     /**
