@@ -1161,21 +1161,21 @@ public class CCTSpec extends BaseGSpec {
      */
     @Given("^I get schema( with level '(\\d+)')? from service '(.+?)' with model '(.+?)' and version '(.+?)'( and save it in environment variable '(.*?)')?( and save it in file '(.*?)')?$")
     public void getServiceSchema(Integer level, String service, String model, String version, String envVar, String fileName) throws Exception {
-        boolean isKubernetesEnv = ThreadProperty.get("KEOS_OAUTH2_PROXY_HOST") != null;
-        String endPoint;
+        if (ThreadProperty.get("isKeosEnv") != null && ThreadProperty.get("isKeosEnv").equals("true")) {
+            getServiceSchemaKeos(service, model, version, envVar, fileName);
+        } else {
+            getServiceSchemaDcos(level, service, model, version, envVar, fileName);
+        }
+    }
 
+    private void getServiceSchemaDcos(Integer level, String service, String model, String version, String envVar, String fileName) throws Exception {
         // Set REST connection
         commonspec.setCCTConnection(null, null);
 
         if (level == null) {
             level = 1;
         }
-
-        if (isKubernetesEnv) {
-            endPoint = "/service/cct-universe-service/v1/descriptors/" + service + "/" + model + "/" + version;
-        } else {
-            endPoint = "/service/" + ThreadProperty.get("deploy_api_id") + "/deploy/" + service + "/" + model + "/" + version + "/schema?enriched=true&level=" + level;
-        }
+        String endPoint = "/service/" + ThreadProperty.get("deploy_api_id") + "/deploy/" + service + "/" + model + "/" + version + "/schema?enriched=true&level=" + level;
         Future<Response> response = commonspec.generateRequest("GET", false, null, null, endPoint, "", null);
         commonspec.setResponse("GET", response.get());
 
@@ -1187,13 +1187,29 @@ public class CCTSpec extends BaseGSpec {
         String json = commonspec.getResponse().getResponse();
 
         if (envVar != null || fileName != null) {
-            if (isKubernetesEnv) {
-                KeosSpec keosSpec = new KeosSpec(commonspec);
-                keosSpec.convertDescriptorToK8sJsonSchema(json, envVar, fileName);
-            } else {
-                DcosSpec dcosSpec = new DcosSpec(commonspec);
-                dcosSpec.convertJSONSchemaToJSON(json, envVar, fileName);
-            }
+            DcosSpec dcosSpec = new DcosSpec(commonspec);
+            dcosSpec.convertJSONSchemaToJSON(json, envVar, fileName);
+        }
+    }
+
+    private void getServiceSchemaKeos(String service, String model, String version, String envVar, String fileName) throws Exception {
+        // Set REST connection
+        commonspec.setCCTConnection(null, null);
+
+        String endPoint = "/service/cct-universe-service/v1/descriptors/" + service + "/" + model + "/" + version;
+        Future<Response> response = commonspec.generateRequest("GET", false, null, null, endPoint, "", null);
+        commonspec.setResponse("GET", response.get());
+
+        if (commonspec.getResponse().getStatusCode() != 200) {
+            logger.error("Request failed to endpoint: " + endPoint + " with status code: " + commonspec.getResponse().getStatusCode() + " and response: " + commonspec.getResponse().getResponse());
+            throw new Exception("Request to endpoint: " + endPoint + " failed with status code: " + commonspec.getResponse().getStatusCode() + " and response: " + commonspec.getResponse().getResponse());
+        }
+
+        String json = commonspec.getResponse().getResponse();
+
+        if (envVar != null || fileName != null) {
+            KeosSpec keosSpec = new KeosSpec(commonspec);
+            keosSpec.convertDescriptorToK8sJsonSchema(json, envVar, fileName);
         }
     }
 
@@ -1211,69 +1227,82 @@ public class CCTSpec extends BaseGSpec {
      */
     @Given("^I install service '(.+?)'( in folder '(.+?)')?( with model '(.+?)')?( and version '(.+?)')?( and instance name '(.+?)')? in tenant '(.+?)' using json '(.+?)'$")
     public void installServiceFromMarathonJson(String service, String folder, String model, String version, String name, String tenant, String jsonFile) throws Exception {
-        boolean isKubernetesEnv = ThreadProperty.get("KEOS_OAUTH2_PROXY_HOST") != null;
-        String endPoint;
-        int expectedResponseCode;
+        if (ThreadProperty.get("isKeosEnv") != null && ThreadProperty.get("isKeosEnv").equals("true")) {
+            installServiceFromCCTKeos(service, folder, model, version, name, tenant, jsonFile);
+        } else {
+            installServiceFromCCTDcos(service, folder, model, version, name, tenant, jsonFile);
+        }
+    }
+
+    public void installServiceFromCCTDcos(String service, String folder, String model, String version, String name, String tenant, String jsonFile) throws Exception {
         // Set REST connection
         commonspec.setCCTConnection(null, null);
-
-        if (isKubernetesEnv) {
-            endPoint = "/service/cct-orchestrator-service/v1/install?tenant=" + tenant;
-            expectedResponseCode = 200;
-        } else {
-            if (model == null || version == null || name == null) {
-                fail("Model, version and instance name are mandatory");
-            }
-            endPoint = "/service/" + ThreadProperty.get("deploy_api_id") + "/deploy/" + service + "/" + model + "/" + version + "/schema?tenantId=" + tenant;
-            expectedResponseCode = 202;
+        if (model == null || version == null || name == null) {
+            fail("Model, version and instance name are mandatory");
         }
+        String endPoint = "/service/" + ThreadProperty.get("deploy_api_id") + "/deploy/" + service + "/" + model + "/" + version + "/schema?tenantId=" + tenant;
         String data = this.commonspec.retrieveData(jsonFile, "json");
 
         Future<Response> response = commonspec.generateRequest("POST", true, null, null, endPoint, data, "json");
         commonspec.setResponse("POST", response.get());
 
-        if (commonspec.getResponse().getStatusCode() != expectedResponseCode) {
+        if (commonspec.getResponse().getStatusCode() != 202) {
+            logger.error("Request to endpoint: " + endPoint + " failed with status code: " + commonspec.getResponse().getStatusCode() + " and response: " + commonspec.getResponse().getResponse());
+            throw new Exception("Request to endpoint: " + endPoint + " failed with status code: " + commonspec.getResponse().getStatusCode() + " and response: " + commonspec.getResponse().getResponse());
+        }
+
+        // Check Application in API
+        RestSpec restSpec = new RestSpec(commonspec);
+
+        String endPointStatus;
+        if (ThreadProperty.get("cct-marathon-services_id") == null) {
+            endPointStatus = "/service/" + ThreadProperty.get("deploy_api_id") + "/deploy/status/all";
+        } else {
+            String[] installer_version = ThreadProperty.get("EOS_SCHEMA_VERSION").split("\\.");
+            if (Integer.parseInt(installer_version[0]) < 1) {
+                endPointStatus = "/service/" + ThreadProperty.get("cct-marathon-services_id") + "/v1/services";
+            } else {
+                endPointStatus = "/service/" + ThreadProperty.get("cct-marathon-services_id") + "/v1/services?tenant=" + tenant;
+            }
+        }
+
+        if (folder != null && folder.startsWith("/")) {
+            folder = folder.substring(1);
+        }
+        if (folder != null && folder.endsWith("/")) {
+            folder = folder.substring(folder.length() - 1);
+        }
+
+        String serviceName = "/" + name;
+        if (folder != null) {
+            serviceName = "/" + folder + "/" + name;
+        }
+        if (!"NONE".equals(tenant)) {
+            serviceName = "/" + tenant + "/" + tenant + "-" + name;
+            if (folder != null) {
+                serviceName = "/" + tenant + "/" + folder + "/" + tenant + "-" + name;
+            }
+        }
+
+        restSpec.sendRequestTimeout(200, 20, "GET", endPointStatus, null, null, serviceName);
+    }
+
+    public void installServiceFromCCTKeos(String service, String folder, String model, String version, String name, String tenant, String jsonFile) throws Exception {
+        // Set REST connection
+        commonspec.setCCTConnection(null, null);
+
+        String endPoint = "/service/cct-orchestrator-service/v1/install?tenant=" + tenant;
+        String data = this.commonspec.retrieveData(jsonFile, "json");
+
+        Future<Response> response = commonspec.generateRequest("POST", true, null, null, endPoint, data, "json");
+        commonspec.setResponse("POST", response.get());
+
+        if (commonspec.getResponse().getStatusCode() != 200) {
             logger.error("Request to endpoint: " + endPoint + " failed with status code: " + commonspec.getResponse().getStatusCode() + " and response: " + commonspec.getResponse().getResponse());
             throw new Exception("Request to endpoint: " + endPoint + " failed with status code: " + commonspec.getResponse().getStatusCode() + " and response: " + commonspec.getResponse().getResponse());
         }
 
         //TODO Check application status in KEOS
-        if (!isKubernetesEnv) {
-            // Check Application in API
-            RestSpec restSpec = new RestSpec(commonspec);
-
-            String endPointStatus;
-            if (ThreadProperty.get("cct-marathon-services_id") == null) {
-                endPointStatus = "/service/" + ThreadProperty.get("deploy_api_id") + "/deploy/status/all";
-            } else {
-                String[] installer_version = ThreadProperty.get("EOS_SCHEMA_VERSION").split("\\.");
-                if (Integer.parseInt(installer_version[0]) < 1) {
-                    endPointStatus = "/service/" + ThreadProperty.get("cct-marathon-services_id") + "/v1/services";
-                } else {
-                    endPointStatus = "/service/" + ThreadProperty.get("cct-marathon-services_id") + "/v1/services?tenant=" + tenant;
-                }
-            }
-
-            if (folder != null && folder.startsWith("/")) {
-                folder = folder.substring(1);
-            }
-            if (folder != null && folder.endsWith("/")) {
-                folder = folder.substring(folder.length() - 1);
-            }
-
-            String serviceName = "/" + name;
-            if (folder != null) {
-                serviceName = "/" + folder + "/" + name;
-            }
-            if (!"NONE".equals(tenant)) {
-                serviceName = "/" + tenant + "/" + tenant + "-" + name;
-                if (folder != null) {
-                    serviceName = "/" + tenant + "/" + folder + "/" + tenant + "-" + name;
-                }
-            }
-
-            restSpec.sendRequestTimeout(200, 20, "GET", endPointStatus, null, null, serviceName);
-        }
     }
 
     /**

@@ -2548,10 +2548,10 @@ public class CommonG {
         if (ThreadProperty.get("EOS_ACCESS_POINT") == null && ThreadProperty.get("KEOS_OAUTH2_PROXY_HOST") == null) {
             fail("KEOS_OAUTH2_PROXY_HOST and EOS_ACCESS_POINT variable are not set. Check @keos / @dcos annotation is working properly.");
         }
-        if (ThreadProperty.get("EOS_ACCESS_POINT") != null) {
-            setCCTConnectionDCOS(tenantOrig, loginInfo);
-        } else { // KEOS_OAUTH2_PROXY_HOST != null
+        if (ThreadProperty.get("isKeosEnv") != null && ThreadProperty.get("isKeosEnv").equals("true")) {
             setCCTConnectionKeos(tenantOrig, loginInfo);
+        } else {
+            setCCTConnectionDCOS(tenantOrig, loginInfo);
         }
     }
 
