@@ -1209,7 +1209,7 @@ public class CCTSpec extends BaseGSpec {
      * @param jsonFile : marathon json to deploy
      * @throws Exception
      */
-    @Given("^I install service '(.+?)'( in folder '(.+?)')? with model '(.+?)' and version '(.+?)' and instance name '(.+?)' in tenant '(.+?)' using json '(.+?)'$")
+    @Given("^I install service '(.+?)'( in folder '(.+?)')?( with model '(.+?)')?( and version '(.+?)')?( and instance name '(.+?)')? in tenant '(.+?)' using json '(.+?)'$")
     public void installServiceFromMarathonJson(String service, String folder, String model, String version, String name, String tenant, String jsonFile) throws Exception {
         boolean isKubernetesEnv = ThreadProperty.get("KEOS_OAUTH2_PROXY_HOST") != null;
         String endPoint;
@@ -1218,9 +1218,12 @@ public class CCTSpec extends BaseGSpec {
         commonspec.setCCTConnection(null, null);
 
         if (isKubernetesEnv) {
-            endPoint = "/service/cct-orchestrator-service/v1/install?tenant=default";
+            endPoint = "/service/cct-orchestrator-service/v1/install?tenant=" + tenant;
             expectedResponseCode = 200;
         } else {
+            if (model == null || version == null || name == null) {
+                fail("Model, version and instance name are mandatory");
+            }
             endPoint = "/service/" + ThreadProperty.get("deploy_api_id") + "/deploy/" + service + "/" + model + "/" + version + "/schema?tenantId=" + tenant;
             expectedResponseCode = 202;
         }
