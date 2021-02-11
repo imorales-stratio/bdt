@@ -1228,13 +1228,13 @@ public class CCTSpec extends BaseGSpec {
     @Given("^I install service '(.+?)'( in folder '(.+?)')?( with model '(.+?)')?( and version '(.+?)')?( and instance name '(.+?)')? in tenant '(.+?)' using json '(.+?)'$")
     public void installServiceFromMarathonJson(String service, String folder, String model, String version, String name, String tenant, String jsonFile) throws Exception {
         if (ThreadProperty.get("isKeosEnv") != null && ThreadProperty.get("isKeosEnv").equals("true")) {
-            installServiceFromCCTKeos(service, folder, model, version, name, tenant, jsonFile);
+            installServiceFromCCTKeos(tenant, jsonFile);
         } else {
             installServiceFromCCTDcos(service, folder, model, version, name, tenant, jsonFile);
         }
     }
 
-    public void installServiceFromCCTDcos(String service, String folder, String model, String version, String name, String tenant, String jsonFile) throws Exception {
+    private void installServiceFromCCTDcos(String service, String folder, String model, String version, String name, String tenant, String jsonFile) throws Exception {
         // Set REST connection
         commonspec.setCCTConnection(null, null);
         if (model == null || version == null || name == null) {
@@ -1287,7 +1287,7 @@ public class CCTSpec extends BaseGSpec {
         restSpec.sendRequestTimeout(200, 20, "GET", endPointStatus, null, null, serviceName);
     }
 
-    public void installServiceFromCCTKeos(String service, String folder, String model, String version, String name, String tenant, String jsonFile) throws Exception {
+    private void installServiceFromCCTKeos(String tenant, String jsonFile) throws Exception {
         // Set REST connection
         commonspec.setCCTConnection(null, null);
 
