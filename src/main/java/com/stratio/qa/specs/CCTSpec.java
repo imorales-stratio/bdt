@@ -1363,6 +1363,33 @@ public class CCTSpec extends BaseGSpec {
     }
 
     /**
+     * Uninstall service from tenant
+     *
+     * @param service : service name
+     * @param tenant  : tenant where service is installed
+     * @throws Exception
+     */
+    @Given("^I uninstall service '(.+?)' from tenant '(.+?)' with schema located at file '(.+?)'$")
+    public void uninstallServiceKeos(String service, String tenant, String jsonFile) throws Exception {
+        JSONObject schemaJson = new JSONObject(this.commonspec.retrieveData(jsonFile, "json"));
+        schemaJson.put("applicationId", service + "." + tenant);
+
+        // Set REST connection
+        commonspec.setCCTConnection(null, null);
+
+        String endPoint = "/service/cct-orchestrator-service/v1/uninstall?tenant=" + tenant;
+        Future<Response> response = commonspec.generateRequest("DELETE", true, null, null, endPoint, schemaJson.toString(), "json");
+        commonspec.setResponse("DELETE", response.get());
+
+        if (commonspec.getResponse().getStatusCode() != 202 && commonspec.getResponse().getStatusCode() != 200) {
+            logger.error("Request to endpoint: " + endPoint + " failed with status code: " + commonspec.getResponse().getStatusCode() + " and response: " + commonspec.getResponse().getResponse());
+            throw new Exception("Request to endpoint: " + endPoint + " failed with status code: " + commonspec.getResponse().getStatusCode() + " and response: " + commonspec.getResponse().getResponse());
+        }
+
+        // TODO Check service is deleted successfully
+    }
+
+    /**
      * Upload rules
      *
      * @param rulesPath : path to rules zip file
