@@ -99,7 +99,7 @@ hose {
         | -DVAULT_PROTOCOL=http://
         | -DVAULT_HOST=%%VAULT
         | -DVAULT_TOKEN=stratio
-        | -DLDAP_URL=%%LDAP
+        | -DLDAP_URL=%%LDAP.cd
         | -DINCLUDE=1
         | -DLDAP_PORT=389""".stripMargin().stripIndent()
     
