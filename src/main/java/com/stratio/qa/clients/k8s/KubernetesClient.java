@@ -128,8 +128,7 @@ public class KubernetesClient {
         getK8sWorkerAndIngressHosts();
 
         // Save IP in /etc/hosts
-        commonspec.getETCHOSTSManagementUtils().acquireLock(null, null, ThreadProperty.get("WORKER_IP"), ThreadProperty.get("KEOS_SIS_HOST"));
-        commonspec.getETCHOSTSManagementUtils().acquireLock(null, null, ThreadProperty.get("WORKER_IP"), ThreadProperty.get("KEOS_OAUTH2_PROXY_HOST"));
+        commonspec.getETCHOSTSManagementUtils().addK8sHost(ThreadProperty.get("WORKER_IP"), ThreadProperty.get("KEOS_SIS_HOST") + " " + ThreadProperty.get("KEOS_OAUTH2_PROXY_HOST"));
 
         // Set variables from command-center-config configmap
         getK8sCCTConfig(commonspec);
