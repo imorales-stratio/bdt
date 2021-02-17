@@ -51,7 +51,7 @@ hose {
            'sleep': 30,       
            'healthcheck': 9300]],
         ['LDAP': [
-            'image': 'stratio/ldap-docker:0.1.0',
+            'image': 'stratio/ldap-docker:0.2.0',
             'env': [
                   'LDAP_SCHEMA=rfc2307',
                   'LDAP_HOSTNAME=%%OWNHOSTNAME',
