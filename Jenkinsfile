@@ -55,7 +55,7 @@ hose {
             'env': [
                   'LDAP_SCHEMA=rfc2307',
                   'LDAP_HOSTNAME=%%OWNHOSTNAME',
-                  'HOSTNAME=%%OWNHOSTNAME',
+                  'HOSTNAME=%%OWNHOSTNAME.cd',
                   'LDAP_ORGANISATION=Stratio',
                   'LDAP_DOMAIN=stratio.com',
                   'LDAP_ADMIN_PASSWORD=stratio'],
